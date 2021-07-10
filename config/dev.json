@@ -1,0 +1,22 @@
+{
+    "taskmeta": {
+        "conn": {
+            "host": "localhost",
+            "user": "root",
+            "password": "123456",
+            "db": "z_pe",
+            "port": 3306,
+            "charset": "utf8"
+        },
+        "query_task": "select * from sql_tasks where id=?"
+    },
+    "roboter": {
+        "token": "3***********************************0",
+        "atMobiles": [
+            "188*******3"
+        ],
+        "isAtAll": false,
+        "roboter_type": "dingding",
+        "hook_keyword": "任务报警"
+    }
+}
