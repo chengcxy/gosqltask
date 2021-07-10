@@ -2,7 +2,6 @@ package main
 
 
 import (
-
 	"flag"
 	"log"
 	"github.com/chengcxy/gotools/configor"
@@ -18,7 +17,7 @@ func init() {
 	flag.StringVar(&Env, "e", "test", "运行的环境-json文件前缀 dev/test/prod/local")
 	flag.StringVar(&TaskId, "id", "1",  "任务id")
 	flag.Parse()
-	log.Println(ConfigPath, Env, TaskId)
+	log.Printf("ConfigPath: %s ,Env: %s ,TaskId: %s ",ConfigPath, Env,TaskId)
 }
 
 

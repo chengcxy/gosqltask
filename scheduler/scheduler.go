@@ -39,7 +39,10 @@ func (sd *Scheduler)GetTaskInfo(){
 	log.Println("QueryTaskSql is ",QueryTaskSql)
 	mc := backends.NewMysqlConfig(taskDbConfig)
 	mysql := backends.NewMysqlClient(mc)
-	defer mysql.Close()
+	defer func(){
+		mysql.Close()
+		log.Println("ok! query taskmeta mysql client closed")
+	}()
 	datas,_, err := mysql.Query(QueryTaskSql,sd.taskId)
 	if err != nil{
 		log.Println("query taskmeta err",err)
