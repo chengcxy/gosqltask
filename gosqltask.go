@@ -11,7 +11,7 @@ import (
 
 func main(){
 	taskId := "1"
-	configPath := "/Users/chengxinyao/go/src/github.com/chengcxy/gosqlboy/config"
+	configPath := "/Users/chengxinyao/go/src/github.com/chengcxy/gosqltask/config"
 	Env := "dev"
 	config := configor.NewConfig(configPath,Env)
 	sd := scheduler.NewScheduler(config,taskId)
