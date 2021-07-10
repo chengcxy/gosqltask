@@ -1,8 +1,8 @@
-# gosqlboy
+:# gosqltask
 
-## gosqlboy 介绍
+## gosqltask 介绍
 
-gosqlboy 是一个执行mysql任务的工具,实际工作当中使用的场景是数据开发或者数据分析的同学需要经常性的写一些sql脚本去取数据或者生成中间表再去加工数据,常规写脚本的方式可能是这样,以python为例
+gosqltask 是一个执行mysql任务的工具,实际工作当中使用的场景是数据开发或者数据分析的同学需要经常性的写一些sql脚本去取数据或者生成中间表再去加工数据,常规写脚本的方式可能是这样,以python为例
 
 ```python
 QUERY  = "select a,b,c from db.table"
