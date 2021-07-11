@@ -2,7 +2,6 @@ package scheduler
 
 
 
-
 type TaskInfo  struct {
 	Id             string `json:"id"`              // 统计任务id
 	ExecutedEngine string `json:"executed_engine"` // 统计流向来源
@@ -18,3 +17,5 @@ type TaskInfo  struct {
 	Owner          string `json:"owner"`           // 取数人
 	TaskStatus     string `json:"task_status"`     // 任务状态
 }
+
+

@@ -4,7 +4,6 @@ package scheduler
 import (
 	"log"
 	"encoding/json"
-	"github.com/chengcxy/gotools/backends"
     "github.com/chengcxy/gotools/configor"
 	"github.com/chengcxy/gotools/roboter"
 ) 
@@ -29,16 +28,13 @@ func NewScheduler(config *configor.Config,taskId string) *Scheduler{
 }
 
 func (sd *Scheduler)GetTaskInfo(){
-	McInterface, ok := sd.config.Get("taskmeta")
-	if !ok {
-		panic("taskmeta key not in json_file")
+	qt,ok := sd.config.Get("taskmeta.query_task")
+	if !ok{
+		log.Fatal("get taskmeta.query_task error")
 	}
-	conf := McInterface.(map[string]interface{})
-	taskDbConfig := conf["conn"]
-	QueryTaskSql := conf["query_task"].(string)
+	QueryTaskSql := qt.(string)
 	log.Println("QueryTaskSql is ",QueryTaskSql)
-	mc := backends.NewMysqlConfig(taskDbConfig)
-	mysql := backends.NewMysqlClient(mc)
+	mysql := NewMysqlClient(sd.config,"taskmeta.conn")
 	defer func(){
 		mysql.Close()
 		log.Println("ok! query taskmeta mysql client closed")
@@ -62,11 +58,9 @@ func (sd *Scheduler)GetTaskInfo(){
 		log.Println("taskmeta Unmarshal for taskInfo error ",err)
 		panic("taskmeta Unmarshal for taskInfo error ")
 	}
-	
 }
 
 
 func (sd *Scheduler)Run(){
-	log.Printf("sd.taskInfo.Params is \n %s",sd.taskInfo.Params)
-	
+	log.Printf("taskInfo.Params is \n %s",sd.taskInfo.Params)
 }
