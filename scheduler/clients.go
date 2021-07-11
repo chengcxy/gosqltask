@@ -173,7 +173,11 @@ func NewMysqlClient(config *configor.Config,key string)(*MysqlClient){
 						m["db"].(string),
 						m["charset"].(string),
  	)
-	Db,_ :=  sql.Open("mysql",Uri)
+	Db, err :=  sql.Open("mysql",Uri)
+	if err != nil{
+		log.Fatal("open mysql error")
+	}
+	
 	Db.SetConnMaxLifetime(time.Minute * 100)
 	Db.SetMaxOpenConns(int(m["MaxOpenConns"].(float64)))
 	Db.SetMaxIdleConns(int(m["MaxIdleConns"].(float64)))
