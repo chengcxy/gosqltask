@@ -177,7 +177,6 @@ func NewMysqlClient(config *configor.Config,key string)(*MysqlClient){
 	if err != nil{
 		log.Fatal("open mysql error")
 	}
-	
 	Db.SetConnMaxLifetime(time.Minute * 100)
 	Db.SetMaxOpenConns(int(m["MaxOpenConns"].(float64)))
 	Db.SetMaxIdleConns(int(m["MaxIdleConns"].(float64)))
@@ -190,9 +189,8 @@ func NewMysqlClient(config *configor.Config,key string)(*MysqlClient){
 
 //封装query方法
 func (m *MysqlClient) Query(query string,args ...interface{}) ([]map[string]string,[]string,error){
-	//stmtIns, err := m.Db.Prepare(query)
 	rows, err := m.Db.Query(query,args...)
-	//defer stmtIns.Close()
+	defer rows.Close()
 	if err != nil {
 		return nil,nil,err
 	}
@@ -222,7 +220,7 @@ func (m *MysqlClient) Query(query string,args ...interface{}) ([]map[string]stri
 		
 		results = append(results,record)
 	}
-	rows.Close()
+	
 	return results,columns,nil
 }
 

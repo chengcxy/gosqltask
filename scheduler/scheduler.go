@@ -4,16 +4,18 @@ package scheduler
 import (
 	"log"
 	"encoding/json"
+	"strings"
     "github.com/chengcxy/gotools/configor"
 	"github.com/chengcxy/gotools/roboter"
 ) 
 
 
 type Scheduler struct {
-	config *configor.Config
-	taskId string
-	robot roboter.Roboter
-	taskInfo *TaskInfo
+	config *configor.Config // 配置
+	taskId string			// 任务id
+	robot roboter.Roboter   // 机器人
+	taskInfo *TaskInfo		// 任务信息
+	isCrossDbInstance bool 	// 是否跨越数据库实例
 
 }
 
@@ -61,6 +63,31 @@ func (sd *Scheduler)GetTaskInfo(){
 }
 
 
+func (sd *Scheduler)GetReader(){
+
+}
+
+
+func (sd *Scheduler)GetWriter(){
+	
+
+}
+
+func (sd *Scheduler)AnalysisTask(){
+	RuleLower := strings.ToLower(strings.TrimSpace(sd.taskInfo.StaticRule))
+	log.Printf("clean static_rule :%s",RuleLower)
+	isCrossDbInstance := true
+	if strings.HasPrefix(RuleLower,"update")  || strings.HasPrefix(RuleLower,"insert")  || strings.HasPrefix(RuleLower,"delete") {
+		isCrossDbInstance = false
+	}
+	sd.isCrossDbInstance = isCrossDbInstance
+	
+	
+
+}
+
+
 func (sd *Scheduler)Run(){
 	log.Printf("taskInfo.Params is \n %s",sd.taskInfo.Params)
+	sd.AnalysisTask()
 }
