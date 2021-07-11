@@ -42,21 +42,21 @@ func (sd *Scheduler)GetTaskInfo(){
 	datas,_, err := mysql.Query(QueryTaskSql,sd.taskId)
 	if err != nil{
 		log.Println("query taskmeta err",err)
-		panic("query taskmeta err")
+		log.Fatal("query taskmeta err")
 	}
 	if len(datas) != 1{
-		panic("taskId not in taskTable")
+		log.Fatal("taskId not in taskTable")
 	}
 	meta := datas[0]//map[string]string
 	metaBytes,err := json.Marshal(meta)
 	if err != nil{
 		log.Println("taskmeta get,but trans bytes error",err)
-		panic("taskmeta get,but trans bytes error")
+		log.Fatal("taskmeta get,but trans bytes error")
 	}
 	err = json.Unmarshal(metaBytes,&sd.taskInfo)
 	if err != nil{
 		log.Println("taskmeta Unmarshal for taskInfo error ",err)
-		panic("taskmeta Unmarshal for taskInfo error ")
+		log.Fatal("taskmeta Unmarshal for taskInfo error ")
 	}
 }
 
