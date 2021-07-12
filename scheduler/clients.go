@@ -100,11 +100,7 @@ func (m *MysqlClient) Close() {
 }
 
 
-//根据主键id对表数据进行切分读取
-func (m *MysqlClient) GetProcessSql(db_name,table_name,pk string) string{
-	query := fmt.Sprintf("select * from %s.%s where %s>? and %s<=?",db_name,table_name,pk,pk)
-	return query
-}
+
 
 //获取表最小值 
 func (m *MysqlClient) GetTotalCount(db_name,table_name string) int{
@@ -156,8 +152,6 @@ type MysqlClient struct{
 	Db *sql.DB
 }
 
-
-
 //mysql 客户端
 func NewMysqlClient(config *configor.Config,key string)(*MysqlClient){
 	conf,ok := config.Get(key)
@@ -178,8 +172,18 @@ func NewMysqlClient(config *configor.Config,key string)(*MysqlClient){
 		log.Fatal("open mysql error")
 	}
 	Db.SetConnMaxLifetime(time.Minute * 100)
-	Db.SetMaxOpenConns(int(m["MaxOpenConns"].(float64)))
-	Db.SetMaxIdleConns(int(m["MaxIdleConns"].(float64)))
+	MaxOpenConns,ok := m["MaxOpenConns"]
+	if ok{
+		Db.SetMaxOpenConns(int(MaxOpenConns.(float64)))
+	}else{
+		Db.SetMaxOpenConns(20)
+	}
+	MaxIdleConns,ok := m["MaxIdleConns"]
+	if ok{
+		Db.SetMaxIdleConns(int(MaxIdleConns.(float64)))
+	}else{
+		Db.SetMaxIdleConns(20)
+	}
 	client := &MysqlClient{
 		Db:Db,
 	}
