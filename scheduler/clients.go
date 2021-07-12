@@ -100,11 +100,7 @@ func (m *MysqlClient) Close() {
 }
 
 
-//根据主键id对表数据进行切分读取
-func (m *MysqlClient) GetProcessSql(db_name,table_name,pk string) string{
-	query := fmt.Sprintf("select * from %s.%s where %s>? and %s<=?",db_name,table_name,pk,pk)
-	return query
-}
+
 
 //获取表最小值 
 func (m *MysqlClient) GetTotalCount(db_name,table_name string) int{
