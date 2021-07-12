@@ -2,6 +2,7 @@ package scheduler
 
 
 import (
+	"fmt"
 	"log"
 	"encoding/json"
 	"strings"
@@ -16,6 +17,9 @@ type Scheduler struct {
 	robot roboter.Roboter   // 机器人
 	taskInfo *TaskInfo		// 任务信息
 	isCrossDbInstance bool 	// 是否跨越数据库实例
+	IsExecutedPool bool     // 是否使用协程池 params非空的且含有worker_num
+	taskPoolParams TaskPoolParams // 任务params
+	globalDbConfig *configor.Config // 全局数据库配置
 
 }
 
@@ -63,31 +67,53 @@ func (sd *Scheduler)GetTaskInfo(){
 }
 
 
-func (sd *Scheduler)GetReader(){
-
-}
-
-
-func (sd *Scheduler)GetWriter(){
-	
-
-}
-
-func (sd *Scheduler)AnalysisTask(){
+func (sd *Scheduler)parseTask(){
 	RuleLower := strings.ToLower(strings.TrimSpace(sd.taskInfo.StaticRule))
 	log.Printf("clean static_rule :%s",RuleLower)
-	isCrossDbInstance := true
+	sd.isCrossDbInstance = true
 	if strings.HasPrefix(RuleLower,"update")  || strings.HasPrefix(RuleLower,"insert")  || strings.HasPrefix(RuleLower,"delete") {
-		isCrossDbInstance = false
+		sd.isCrossDbInstance = false
 	}
-	sd.isCrossDbInstance = isCrossDbInstance
+	sd.IsExecutedPool = false
+	if sd.taskInfo.Params != "NULL" && strings.Contains(sd.taskInfo.Params,"worker_num"){
+		sd.IsExecutedPool = true
+	}
+	if sd.IsExecutedPool{
+		var f map[string]interface{}
+		err := json.Unmarshal([]byte(sd.taskInfo.Params),&f)
+		if err != nil{
+			log.Fatal("task.params Json Unmarshal err")
+		}
+		mapBytes,err := json.Marshal(f["split"])
+		if err != nil{
+			log.Fatal("task.params.split Json Marshal err")
+		}
+		err = json.Unmarshal(mapBytes,&sd.taskPoolParams)
+		if err != nil{
+			log.Fatal("task.params.split bytes trans for sd.taskPoolParams err")
+		}
+	}
+	//获取全局数据库连接
+	sd.globalDbConfig = configor.NewConfig(sd.config.ConfigPath,GlobalDBConfigJsonFile)
 	
-	
+
+
 
 }
 
+func(sd *Scheduler)SubmitTask(cmd string){
+	readerKey := fmt.Sprintf("from.mysql.%s_%s",sd.taskInfo.FromApp,sd.taskInfo.FromDb)
+	reader := NewMysqlClient(sd.globalDbConfig,readerKey)
+	defer reader.Close()
+	writerKey := fmt.Sprintf("to.mysql.%s_%s",sd.taskInfo.ToApp,sd.taskInfo.ToDb)
+	writer := NewMysqlClient(sd.globalDbConfig,writerKey)
+	defer writer.Close()
+	
+}
 
-func (sd *Scheduler)Run(){
+func (sd *Scheduler)Run(cmd string){
 	log.Printf("taskInfo.Params is \n %s",sd.taskInfo.Params)
-	sd.AnalysisTask()
+	sd.parseTask()
+	sd.SubmitTask(cmd)
+	
 }

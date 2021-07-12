@@ -156,8 +156,6 @@ type MysqlClient struct{
 	Db *sql.DB
 }
 
-
-
 //mysql 客户端
 func NewMysqlClient(config *configor.Config,key string)(*MysqlClient){
 	conf,ok := config.Get(key)
@@ -178,8 +176,18 @@ func NewMysqlClient(config *configor.Config,key string)(*MysqlClient){
 		log.Fatal("open mysql error")
 	}
 	Db.SetConnMaxLifetime(time.Minute * 100)
-	Db.SetMaxOpenConns(int(m["MaxOpenConns"].(float64)))
-	Db.SetMaxIdleConns(int(m["MaxIdleConns"].(float64)))
+	MaxOpenConns,ok := m["MaxOpenConns"]
+	if ok{
+		Db.SetMaxOpenConns(int(MaxOpenConns.(float64)))
+	}else{
+		Db.SetMaxOpenConns(20)
+	}
+	MaxIdleConns,ok := m["MaxIdleConns"]
+	if ok{
+		Db.SetMaxIdleConns(int(MaxIdleConns.(float64)))
+	}else{
+		Db.SetMaxIdleConns(20)
+	}
 	client := &MysqlClient{
 		Db:Db,
 	}
