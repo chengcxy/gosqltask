@@ -35,3 +35,13 @@ type TaskPoolParams struct {
 }
 
 
+
+var PrintLogTemplate = `
+TaskId:%s
+sql:%s,
+params:pass
+
+`
+
+
+
