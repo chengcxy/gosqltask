@@ -47,3 +47,8 @@ if __name__ == "__main__":
 
 
 
+```
+config := configor.Config
+NewMysqlClient(config,"conn.mysql")
+
+```
