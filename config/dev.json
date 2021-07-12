@@ -9,7 +9,6 @@
             "charset": "utf8",
             "MaxOpenConns":30,
             "MaxIdleConns":30
-
         },
         "query_task": "select * from sql_tasks where id=?"
     },
