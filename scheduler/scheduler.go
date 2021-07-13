@@ -108,6 +108,13 @@ func (sd *Scheduler)RenderSql()string{
 
 func (sd *Scheduler) GetStartEnds(MinId,MaxId int)([][]int){
 	start_ends := make([][]int,0)
+	if sd.taskPoolParams.Pk == "id"{
+		ls := make([]int,2)
+		ls[0] = MinId
+		ls[1] = MaxId 
+		start_ends = append(start_ends,ls)
+		return start_ends
+	}
 	ls := make([]int,2)
 	ls[0] = MinId
 	ls[1] = 100012000000 
