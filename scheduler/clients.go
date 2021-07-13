@@ -235,11 +235,146 @@ func (m *MysqlClient) Execute(stmt string, args ...interface{}) (int64, error){
 		return 0,err
 	}
 	var affNum int64
-	 affNum, err = result.RowsAffected()
-	 if err != nil {
+	affNum, err = result.RowsAffected()
+	if err != nil {
 		 fmt.Println("insert err2 ",err)
 		 return 0,err
 	}
 	return affNum,nil
 		
+}
+
+
+func (m *MysqlClient) Write(to_db,to_table string,columns []string,is_create_table bool,datas []map[string]string,write_batch int)(int64,bool,int){
+	status := 0
+	var num int64
+	num = 0
+	if len(columns)>0 && is_create_table{
+		stmts := make([]string,len(columns))
+		schema := ""
+		id_exists := false
+		z_create_time_exists := false
+		z_update_time_exists := false
+		for _,col := range columns{
+			if col == "id"{
+				id_exists = true
+			}
+			if col == "z_create_time"{
+				z_create_time_exists = true
+			}
+			if col == "z_update_time"{
+				z_update_time_exists = true
+			}
+		}
+		if id_exists{
+			schema = fmt.Sprintf("create table if not exists %s.%s(add_id int(11) NOT NULL AUTO_INCREMENT COMMENT '主键id',",to_db,to_table)
+		}else{
+			schema = fmt.Sprintf("create table if not exists %s.%s(id int(11) NOT NULL AUTO_INCREMENT COMMENT '主键id',",to_db,to_table)
+		}
+		for index,col := range columns{
+			stmts[index] = fmt.Sprintf(" %s varchar(255)",col)
+		}
+		schema += strings.Join(stmts,",")
+
+		temp := make([]string,0)
+		if !z_create_time_exists{
+			temp = append(temp,"z_create_time datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'")
+		}else{
+			temp = append(temp,"add_z_create_time datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'")
+		}
+		if !z_update_time_exists{
+			temp = append(temp,"z_update_time datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'")
+		}else{
+			temp = append(temp,"add_z_update_time datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'")
+		}
+		if !id_exists{
+			temp = append(temp,"PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;")
+		}else{
+			temp = append(temp,"PRIMARY KEY (add_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;")
+		}
+		schema += fmt.Sprintf(",%s",strings.Join(temp,","))
+        m.Execute(schema)
+		is_create_table = false
+	}
+	if len(datas) == 0{
+		return 0,is_create_table,status
+	}else{
+		insert_str := strings.Join(columns,",")
+		insert_sql := fmt.Sprintf("insert into %s.%s(%s)values",to_db,to_table,insert_str)
+		question_sign := make([]string,len(columns))
+		for i,_ := range columns{
+			question_sign[i] = "?"
+		}
+		question_sign_strs := fmt.Sprintf("(%s)",strings.Join(question_sign,","))
+		temp_batchs := make([]map[string]string,0)
+		var _insert_sql string
+		for len(datas)>0{
+			data := datas[0]
+			temp_batchs = append(temp_batchs,data)
+			datas = append(datas[:0],datas[1:]...)
+			if len(temp_batchs) == write_batch{
+				_insert_sql = insert_sql
+				s := make([]string,write_batch)
+				values := make([]interface{},len(columns)*len(temp_batchs))
+				for index,data := range temp_batchs{
+					v := make([]interface{},len(columns))
+					for j :=0;j<len(columns);j++{
+						if data[columns[j]] == "NULL"{
+							v[j] = nil
+						}else{
+							v[j] = data[columns[j]]
+						}
+					}
+					for x :=0;x<len(columns);x++{
+						values[index*len(columns)+x] = v[x]
+					}
+					s[index] = question_sign_strs
+				}
+				_insert_sql += strings.Join(s,",")
+				_num,err := m.Execute(_insert_sql,values...)
+				if err != nil{
+					fmt.Println("errors===\n,",_insert_sql,"===values=",values)
+					status = 1
+				}
+				num += _num
+				
+				values = make([]interface{},0)
+				temp_batchs = make([]map[string]string,0)
+				_insert_sql = ""
+				fmt.Println("write ",num," rows 清空batch",len(temp_batchs))
+			} 
+		}
+		fmt.Println(" 清空batch后",len(temp_batchs))
+		if len(temp_batchs)>0{
+			_insert_sql2 := insert_sql
+			s := make([]string,len(temp_batchs))
+			values2 := make([]interface{},len(columns)*len(temp_batchs))
+			for index,data := range temp_batchs{
+				v := make([]interface{},len(columns))
+				for j :=0;j<len(columns);j++{
+					if data[columns[j]] == "NULL"{
+						v[j] = nil
+					}else{
+						v[j] = data[columns[j]]
+					}
+				}
+				for x :=0;x<len(columns);x++{
+					values2[index*len(columns)+x] = v[x]
+				}
+				s[index] = question_sign_strs
+			}
+			_insert_sql2 += strings.Join(s,",")
+			_num,err := m.Execute(_insert_sql2,values2...)
+			if err != nil{
+				fmt.Println("errors===\n,new2",datas,"===values2=",values2)
+				status = 1
+			}
+			num += _num
+			fmt.Println("write ",num," rows")
+			values2 = nil
+			temp_batchs = nil
+
+		}
+		return num,is_create_table,status
+    }
 }

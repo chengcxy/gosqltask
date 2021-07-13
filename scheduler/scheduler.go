@@ -12,19 +12,7 @@ import (
 ) 
 
 
-type Scheduler struct {
-	config *configor.Config // 配置
-	taskId string			// 任务id
-	robot roboter.Roboter   // 机器人
-	taskInfo *TaskInfo		// 任务信息
-	isCrossDbInstance bool 	// 是否跨越数据库实例
-	IsExecutedPool bool     // 是否使用协程池 params非空的且含有worker_num
-	taskPoolParams TaskPoolParams // 任务params
-	globalDbConfig *configor.Config // 全局数据库配置
-	reader *MysqlClient
-	writer *MysqlClient
 
-}
 
 func NewScheduler(config *configor.Config,taskId string) *Scheduler{
 	sd := &Scheduler{
@@ -73,8 +61,12 @@ func (sd *Scheduler)GetTaskInfo(){
 func (sd *Scheduler)parseTask(){
 	RuleLower := strings.ToLower(strings.TrimSpace(sd.taskInfo.StaticRule))
 	log.Printf("clean static_rule :%s",RuleLower)
+	sd.runQuery = true
+	if strings.HasPrefix(RuleLower,"update")  || strings.HasPrefix(RuleLower,"insert")  || strings.HasPrefix(RuleLower,"delete") || strings.HasPrefix(RuleLower,"replace"){
+		sd.runQuery = false
+	}
 	sd.isCrossDbInstance = true
-	if strings.HasPrefix(RuleLower,"update")  || strings.HasPrefix(RuleLower,"insert")  || strings.HasPrefix(RuleLower,"delete") || sd.taskInfo.FromApp == sd.taskInfo.ToApp{
+	if strings.HasPrefix(RuleLower,"update")  || strings.HasPrefix(RuleLower,"insert")  || strings.HasPrefix(RuleLower,"delete") || strings.HasPrefix(RuleLower,"replace") || sd.taskInfo.FromApp == sd.taskInfo.ToApp{
 		sd.isCrossDbInstance = false
 	}
 	sd.IsExecutedPool = false
@@ -114,15 +106,42 @@ func (sd *Scheduler)RenderSql()string{
 	return query
 }
 
-
-func (sd *Scheduler)GenJobs() chan *Job{
+func (sd *Scheduler) GetStartEnds(MinId,MaxId int)([][]int){
+	start_ends := make([][]int,0)
+	ls := make([]int,2)
+	ls[0] = MinId
+	ls[1] = 100012000000 
+	start_ends = append(start_ends,ls)
+	ls2 := make([]int,2)
+	ls2[0] = 1000100000000000
+	ls2[1] = MaxId
+	start_ends= append(start_ends,ls2)
+	return start_ends
+}
+func (sd *Scheduler)GenJobs(Jobchan chan *Job){
 	db := strings.Split(sd.taskPoolParams.Table, ".")[0]
 	table := strings.Split(sd.taskPoolParams.Table, ".")[1]
-	start := sd.reader.GetMinId(db,table,sd.taskPoolParams.Pk)
-	end := sd.reader.GetMaxId(db,table,sd.taskPoolParams.Pk)
-	jobsChan := make(chan *Job,0)
-	
-	return query
+	MinId := sd.reader.GetMinId(db,table,sd.taskPoolParams.Pk)
+	MaxId := sd.reader.GetMaxId(db,table,sd.taskPoolParams.Pk)
+	start_ends := sd.GetStartEnds(MinId,MaxId)
+	for _,ls := range start_ends{
+		start,end := ls[0],ls[1]
+		fmt.Println("start,end ",start,end)
+		for start < end {
+			_end := start + sd.taskPoolParams.ReadBatch
+			if _end > end {
+				_end = end
+			}
+			p := &Job{
+				Start: start,
+				End:   _end,
+			}
+			Jobchan <- p
+			fmt.Println("push params ", p)
+			start = _end
+		}
+	}
+	close(Jobchan)
 }
 
 func (sd *Scheduler)SplitSql(start,end int)string{
@@ -130,6 +149,36 @@ func (sd *Scheduler)SplitSql(start,end int)string{
 	q = strings.Replace(q,"$start",strconv.Itoa(start),-1)
 	q = strings.Replace(q,"$end",strconv.Itoa(end),-1)
 	return q
+}
+
+
+
+func (sd *Scheduler)SingleThread(start,end int)(int64,bool,int){
+	//执行update/delete/insert/replace语句时 reader.Execute() 其他判断是否跨库执行
+	stam := sd.SplitSql(start,end )
+	if sd.runQuery{
+		is_create_table := true
+		datas,columns,err := sd.reader.Query(stam)
+		if err != nil{
+			log.Fatal(err)
+		}
+		if sd.isCrossDbInstance{
+			return sd.writer.Write(sd.taskInfo.ToDb,sd.taskInfo.ToTable,columns,is_create_table,datas,sd.taskPoolParams.WriteBatch)
+		}else{
+			return sd.reader.Write(sd.taskInfo.ToDb,sd.taskInfo.ToTable,columns,is_create_table,datas,sd.taskPoolParams.WriteBatch)
+		}
+	}else{
+		num,err := sd.reader.Execute(stam)
+		if err != nil{
+			log.Fatal(err)
+		}
+		return num,false,0
+	}
+}
+
+func (sd *Scheduler)ThreadPool(){
+	p := NewWorkerPool(sd)
+	p.run()
 }
 
 func(sd *Scheduler)SubmitTask(debug bool){
@@ -148,11 +197,16 @@ func(sd *Scheduler)SubmitTask(debug bool){
 		writerKey := fmt.Sprintf("to.mysql.%s_%s",sd.taskInfo.ToApp,sd.taskInfo.ToDb)
 		sd.writer = NewMysqlClient(sd.globalDbConfig,writerKey)	
 	}
-	pool := NewWorkerPool(sd)
-	pool.run()
+	//根据params参数判断是单线程执行还是多线程执行
 
+	if !sd.IsExecutedPool{
+		sd.SingleThread(0,0)
+		sd.robot.SendMsg(" SingleThread executed finished")
+	}else{
+		sd.ThreadPool()
+		sd.robot.SendMsg(" pool executed finished")
+	}
 	
-
 }
 
 func (sd *Scheduler)Run(debug bool){
