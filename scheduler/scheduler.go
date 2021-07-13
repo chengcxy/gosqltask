@@ -115,6 +115,16 @@ func (sd *Scheduler)RenderSql()string{
 }
 
 
+func (sd *Scheduler)GenJobs() chan *Job{
+	db := strings.Split(sd.taskPoolParams.Table, ".")[0]
+	table := strings.Split(sd.taskPoolParams.Table, ".")[1]
+	start := sd.reader.GetMinId(db,table,sd.taskPoolParams.Pk)
+	end := sd.reader.GetMaxId(db,table,sd.taskPoolParams.Pk)
+	jobsChan := make(chan *Job,0)
+	
+	return query
+}
+
 func (sd *Scheduler)SplitSql(start,end int)string{
 	q := sd.taskInfo.StaticRule
 	q = strings.Replace(q,"$start",strconv.Itoa(start),-1)
@@ -138,8 +148,8 @@ func(sd *Scheduler)SubmitTask(debug bool){
 		writerKey := fmt.Sprintf("to.mysql.%s_%s",sd.taskInfo.ToApp,sd.taskInfo.ToDb)
 		sd.writer = NewMysqlClient(sd.globalDbConfig,writerKey)	
 	}
-	// pool := NewWorkerPool(sd)
-	// pool.run()
+	pool := NewWorkerPool(sd)
+	pool.run()
 
 	
 

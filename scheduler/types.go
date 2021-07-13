@@ -43,5 +43,25 @@ params:pass
 
 `
 
+type Job struct{
+	Start int
+	End int
+}
 
 
+type WorkerPool struct{
+	sd *Scheduler
+	JobChan chan *Job
+	ResultChan chan *Result
+}
+
+func (p *WorkerPool)run(){
+	if p.sd.IsExecutedPool{
+		for i:=0;i<sd.taskPoolParams.WorkerNum;i++{
+			go 
+		}
+
+	}
+	
+
+}
