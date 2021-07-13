@@ -17,6 +17,7 @@ type Scheduler struct {
 	taskId string			// 任务id
 	robot roboter.Roboter   // 机器人
 	taskInfo *TaskInfo		// 任务信息
+	runQuery bool           // 是否执行数据库查询
 	isCrossDbInstance bool 	// 是否跨越数据库实例
 	IsExecutedPool bool     // 是否使用协程池 params非空的且含有worker_num
 	taskPoolParams TaskPoolParams // 任务params
@@ -73,8 +74,12 @@ func (sd *Scheduler)GetTaskInfo(){
 func (sd *Scheduler)parseTask(){
 	RuleLower := strings.ToLower(strings.TrimSpace(sd.taskInfo.StaticRule))
 	log.Printf("clean static_rule :%s",RuleLower)
+	sd.runQuery = true
+	if strings.HasPrefix(RuleLower,"update")  || strings.HasPrefix(RuleLower,"insert")  || strings.HasPrefix(RuleLower,"delete") || strings.HasPrefix(RuleLower,"replace"){
+		sd.runQuery = false
+	}
 	sd.isCrossDbInstance = true
-	if strings.HasPrefix(RuleLower,"update")  || strings.HasPrefix(RuleLower,"insert")  || strings.HasPrefix(RuleLower,"delete") || sd.taskInfo.FromApp == sd.taskInfo.ToApp{
+	if strings.HasPrefix(RuleLower,"update")  || strings.HasPrefix(RuleLower,"insert")  || strings.HasPrefix(RuleLower,"delete") || strings.HasPrefix(RuleLower,"replace") || sd.taskInfo.FromApp == sd.taskInfo.ToApp{
 		sd.isCrossDbInstance = false
 	}
 	sd.IsExecutedPool = false
@@ -122,6 +127,36 @@ func (sd *Scheduler)SplitSql(start,end int)string{
 	return q
 }
 
+
+
+func (sd *Scheduler)SingleThread()(int64,bool,int){
+	//执行update/delete/insert/replace语句时 reader.Execute() 其他判断是否跨库执行
+	if sd.runQuery{
+		is_create_table := true
+		datas,columns,err := sd.reader.Query(sd.taskInfo.StaticRule)
+		if err != nil{
+			log.Fatal(err)
+		}
+		if sd.isCrossDbInstance{
+			return sd.writer.Write(sd.taskInfo.ToDb,sd.taskInfo.ToTable,columns,is_create_table,datas,sd.taskPoolParams.WriteBatch)
+		}else{
+			return sd.reader.Write(sd.taskInfo.ToDb,sd.taskInfo.ToTable,columns,is_create_table,datas,sd.taskPoolParams.WriteBatch)
+		}
+	}else{
+		num,err := sd.reader.Execute(sd.taskInfo.StaticRule)
+		if err != nil{
+			log.Fatal(err)
+		}
+		return num,false,0
+	}
+}
+
+func (sd *Scheduler)ThreadPool()string{
+	return ""
+}
+
+
+
 func(sd *Scheduler)SubmitTask(debug bool){
 	if debug{
 		if strings.Contains(sd.taskInfo.StaticRule,"$start"){
@@ -138,6 +173,15 @@ func(sd *Scheduler)SubmitTask(debug bool){
 		writerKey := fmt.Sprintf("to.mysql.%s_%s",sd.taskInfo.ToApp,sd.taskInfo.ToDb)
 		sd.writer = NewMysqlClient(sd.globalDbConfig,writerKey)	
 	}
+	//根据params参数判断是单线程执行还是多线程执行
+	if !sd.IsExecutedPool{
+		sd.SingleThread()
+	}else{
+		sd.ThreadPool()
+	}
+
+	
+
 	// pool := NewWorkerPool(sd)
 	// pool.run()
 
