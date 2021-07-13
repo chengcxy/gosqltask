@@ -189,7 +189,7 @@ func (sd *Scheduler)ThreadPool(){
 }
 
 func(sd *Scheduler)SubmitTask(debug bool){
-	if debug{
+	if debug {
 		if strings.Contains(sd.taskInfo.StaticRule,"$start"){
 			log.Printf("debugsql is:\n%s",sd.SplitSql(0,10000))
 		}else{

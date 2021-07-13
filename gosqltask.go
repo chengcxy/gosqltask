@@ -19,6 +19,7 @@ func init() {
 	flag.StringVar(&Env, "e", "test", "运行的环境-json文件前缀 dev/test/prod/local")
 	flag.StringVar(&TaskId, "id", "1",  "任务id")
 	flag.BoolVar(&Debug, "d", false, "debug执行的sql")
+	flag.BoolVar(&Debug, "debug", false, "debug执行的sql")
 	flag.Parse()
 	log.Printf("ConfigPath: %s ,Env: %s ,TaskId: %s Debug:%v ",ConfigPath, Env,TaskId,Debug)
 }
@@ -27,7 +28,7 @@ func init() {
 func main(){
 	config := configor.NewConfig(ConfigPath, Env)
 	sd := scheduler.NewScheduler(config,TaskId)
-	sd.Run(false)
+	sd.Run(Debug)
 }
 
 
