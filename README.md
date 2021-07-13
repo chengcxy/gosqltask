@@ -37,6 +37,7 @@ class Scheduler(object):
       def process(self):
           datas = self.read()
           self.write(datas)
+          self.db.close()
 
 if __name__ == "__main__":
      config = {
@@ -49,6 +50,9 @@ if __name__ == "__main__":
 
 那么当再来需求的时候,怎么办呢？将QUERY变量和INSERT变量的值换一下,重新建一个py脚本.
 从上面的过程可以看出,每次变化的是读取的规则和写入的规则,处理流程也无非是这样:读到数据->处理数据->写入数据.
+
+
+### 如何将重复的工作简单化 
 
 
 
