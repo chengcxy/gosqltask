@@ -238,15 +238,51 @@ func (sd *Scheduler)getTimeValue(v string) string{
 -id sql_tasks.任务id
 
 例子:
-a.默认读取./config/dev.json 调试运行任务id=2
-go run gosqltask.go --debug=true -id 2 
+a.默认读取./config/dev.json 调试运行任务id=3
+go run gosqltask.go --debug=true -id 3
 
-b.默认读取./config/dev.json 运行任务id=2
-go run gosqltask.go --debug=false -id 2 
+b.默认读取./config/dev.json 运行任务id=3
+go run gosqltask.go --debug=false -id 3
 
-b.默认读取具体路径的test配置文件 运行任务id=2
-go run gosqltask.go -c xxx -e test --debug=false -id 2 
+b.默认读取具体路径的test配置文件 运行任务id=3
+go run gosqltask.go -c xxx -e test --debug=false -id 3
 ```
 
 - 2.9 webapi有待开发 暂时支持服务器终端命令行运行
 
+
+## 三.运行日志
+
+```
+➜  gosqltask git:(master) ✗ go run gosqltask.go -e test --debug=false -id 3
+2021/07/14 17:45:14 ConfigPath: ./config/ ,Env: test ,TaskId: 3 Debug:false
+2021/07/14 17:45:14 QueryTaskSql is  select * from sql_tasks where id=?
+2021/07/14 17:45:14 ok! query taskmeta mysql client closed
+2021/07/14 17:45:14 taskInfo.Params is
+ {"split":{"table":"test.userinfo","pk":"id","worker_num":20,"read_batch":20000,"write_batch":300}}
+2021/07/14 17:45:14 clean static_rule :
+
+select $start as start,$end as end,num
+from (
+  select count(1) as num
+  from $table
+  where $pk>$start and $pk<=$end
+) as a
+
+2021/07/14 17:45:14 start,end  0 107800
+2021/07/14 17:45:14 producer job params  &{0 20000}
+2021/07/14 17:45:14 producer job params  &{20000 40000}
+2021/07/14 17:45:14 producer job params  &{40000 60000}
+2021/07/14 17:45:14 producer job params  &{60000 80000}
+2021/07/14 17:45:14 producer job params  &{80000 100000}
+2021/07/14 17:45:14 producer job params  &{100000 107800}
+2021/07/14 17:45:14 producer job params finished
+2021/07/14 17:45:14 &{3 12 100000 107800 1 0}
+2021/07/14 17:45:14 &{3 4 40000 60000 1 0}
+2021/07/14 17:45:14 &{3 1 20000 40000 1 0}
+2021/07/14 17:45:14 &{3 3 60000 80000 1 0}
+2021/07/14 17:45:14 &{3 5 80000 100000 1 0}
+2021/07/14 17:45:14 &{3 2 0 20000 1 0}
+2021/07/14 17:45:14 close reader and writer if writer is not null
+2021/07/14 17:45:14 costs 472.984236ms
+```
