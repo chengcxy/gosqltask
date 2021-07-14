@@ -137,7 +137,7 @@ from (
 最终结果是运行了4s,性能提升近5倍
 
 ```
-- 2.3 增量条件如何传递
+- 2.3 增量条件如何传递 预计2021.07.15这个功能添加
 ```
 如果时候我们需要跑一些增量统计,对增量表添加时间限制是最常用的办法,举例 每天的订单量/订单额
 
@@ -163,6 +163,39 @@ where order_time>="$1" and order_time < "$2"
 group by order_date
 
 程序会自动匹配$1 和$2的值去执行
+
+具体处理的函数为:util.go.GetDateFromToday
+
+import (
+	"time"
+)
+
+var DayFormatter = "2006-01-02"
+
+func GetDateFromToday(interval int) string {
+	return time.Now().AddDate(0, 0, interval).Format(DayFormatter)
+}
+
+============================================================================
+func (sd *Scheduler)getTimeValue(v string) string{
+	if v == "$today"{
+		return GetDateFromToday(0)
+	}else if strings.Contains(v,"$today-"){
+		num := strings.TrimSpace(strings.Replace(v,"$today-","",-1))
+		n,err := strconv.Atoi(num)
+		if err != nil{
+			log.Fatal(err)
+		}
+		return GetDateFromToday(-n)
+	}else{
+		num := strings.TrimSpace(strings.Replace(v,"$today+","",-1))
+		n,err := strconv.Atoi(num)
+		if err != nil{
+			log.Fatal(err)
+		}
+		return GetDateFromToday(n)
+	}
+}
 ```
 - 2.4 任务执行状态？通知?
 ```
