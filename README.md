@@ -154,7 +154,7 @@ from (
 ```
 - 2.5 增量条件如何传递 
 ```
-如果时候我们需要跑一些增量统计,对增量表添加时间限制是最常用的办法,举例 每天增量的订单量/订单额
+很多时候我们需要跑一些增量统计,对增量表添加时间限制是最常用的办法,举例 每天增量的订单量/订单额
 
 select order_date,count(order_id) as orders,sum(order_amount) as order_amount
 from test.orders
