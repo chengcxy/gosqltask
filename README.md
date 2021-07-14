@@ -90,3 +90,8 @@ gosqltask虽然暂时只支持mysql2mysql的sql任务,这个表2个字段FromDbT
 
 
 
+```
+config := configor.Config
+NewMysqlClient(config,"conn.mysql")
+
+```

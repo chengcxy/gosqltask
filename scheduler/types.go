@@ -1,6 +1,24 @@
 package scheduler
 
+import (
+	"github.com/chengcxy/gotools/configor"
+	"github.com/chengcxy/gotools/roboter"
+)
 
+type Scheduler struct {
+	config *configor.Config // 配置
+	taskId string			// 任务id
+	robot roboter.Roboter   // 机器人
+	taskInfo *TaskInfo		// 任务信息
+	runQuery bool           // 是否执行数据库查询
+	isCrossDbInstance bool 	// 是否跨越数据库实例
+	IsExecutedPool bool     // 是否使用协程池 params非空的且含有worker_num
+	taskPoolParams TaskPoolParams // 任务params
+	globalDbConfig *configor.Config // 全局数据库配置
+	reader *MysqlClient
+	writer *MysqlClient
+
+}
 
 
 
@@ -44,5 +62,25 @@ params:pass
 
 `
 
+type Job struct{
+	Start int
+	End int
+}
+
+type Result struct {
+	TaskId string // 任务id
+	WorkerId int //worker
+	Start int
+	End int
+	Num int64
+	Status int
+	
+}
+type WorkerPool struct{
+	sd *Scheduler
+	JobChan chan *Job
+	ResultChan chan *Result
+	CollectResult chan bool
+}
 
 

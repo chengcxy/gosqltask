@@ -333,7 +333,6 @@ func (m *MysqlClient) Write(to_db,to_table string,columns []string,is_create_tab
 				_insert_sql += strings.Join(s,",")
 				_num,err := m.Execute(_insert_sql,values...)
 				if err != nil{
-					fmt.Println("errors===\n,",_insert_sql,"===values=",values)
 					status = 1
 				}
 				num += _num
@@ -341,10 +340,8 @@ func (m *MysqlClient) Write(to_db,to_table string,columns []string,is_create_tab
 				values = make([]interface{},0)
 				temp_batchs = make([]map[string]string,0)
 				_insert_sql = ""
-				fmt.Println("write ",num," rows 清空batch",len(temp_batchs))
 			} 
 		}
-		fmt.Println(" 清空batch后",len(temp_batchs))
 		if len(temp_batchs)>0{
 			_insert_sql2 := insert_sql
 			s := make([]string,len(temp_batchs))
@@ -366,11 +363,9 @@ func (m *MysqlClient) Write(to_db,to_table string,columns []string,is_create_tab
 			_insert_sql2 += strings.Join(s,",")
 			_num,err := m.Execute(_insert_sql2,values2...)
 			if err != nil{
-				fmt.Println("errors===\n,new2",datas,"===values2=",values2)
 				status = 1
 			}
 			num += _num
-			fmt.Println("write ",num," rows")
 			values2 = nil
 			temp_batchs = nil
 
