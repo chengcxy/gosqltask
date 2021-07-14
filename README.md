@@ -81,17 +81,96 @@ type TaskInfo  struct {
 demo数据见data/sql_tasks.sql,这个表创建以后,dev.json里面taskmeta.conn需要修改为sql_tasks表所在的数据库信息
 gosqltask虽然暂时只支持mysql2mysql的sql任务,这个表2个字段FromDbType和ToDbType 后面可以使用其他语言进行拓展,作者之前经常写spark任务,使用pyspark做成了配置的工具
 ```
-- 2.2 大表查询慢问题/增量条件如何传递？
+- 2.2 大表查询慢问题
+```
+params字段设置分割条件 json格式
+{
+  "split":{
+    "table":"test.userinfo", //分割的表
+    "pk":"id",               //根据哪个字段分割
+    "worker_num":20,         //多少个worker执行
+    "read_batch":10000,        //根据$pk的值多少一个区间读取 拼接 where条件 $pk>0 and $pk<=$read_batch
+    "write_batch":300        //批量写入的值
+  }
+}
+
+params字段设置完毕,static_rule 统计规则设置 举例:
+test.userinfo表如果有6000万数据,想对每个id的区间有多少数据做一个统计,我们可能会这样写sql
+
+select 
+   case 
+     when id>0 and id<=10000 then "(0,10000]"
+     when id>10000 and id<=20000 then "(10000,20000]"
+     ... else "[600000000,600010000]" end as section,count(1) as users
+from test.userinfo
+group by 
+  case 
+     when id>0 and id<=10000 then "(0,10000]"
+     when id>10000 and id<=20000 then "(10000,20000]"
+     ... else "[600000000,600010000]" end
+
+实际执行上面这个sql的时候 由于数据量过大会很慢,这张表900多万数据运行了近20s
+当按如下规则配置时由于命中了索引,执行会很快 
+select $start as start,$end as end,users
+from (
+	  select count(1) as users
+	  from $table 
+    where $pk>$start and $pk<=$end 
+) as a
+ 
+我们约定 $start 代表切分键的起始值, $end 代表切分键的结束值,当params.split.read_batch=20000时,上面的执行sql被分成这样的计划执行,根据id主键按20000一个区间进行分批次读取
+select 0 as start,20000 as end,num
+from (
+	select count(1) as num
+	from test.userinfo
+  where id>0 and id<=20000
+) as a
+...
+...
+select 20000 as start,40000 as end,num
+from (
+	select count(1) as num
+	from test.userinfo
+  where id>20000 and id<=40000
+) as a
+
+最终结果是运行了4s,性能提升近5倍
 
 ```
+- 2.3 增量条件如何传递
 ```
-- 2.3 任务执行状态？通知?
+如果时候我们需要跑一些增量统计,对增量表添加时间限制是最常用的办法,举例 每天的订单量/订单额
 
+select order_date,count(order_id) as orders,sum(order_amount) as order_amount
+from test.orders
+where order_time >= "2021-07-13" and order_time < "2021-07-14"
+group by order_date
 
+我们可以将order_date>="2021-07-06" 这个条件 根据业务场景 配置到params
+params字段 json格式 我们约定  $today 是获取北京时间的一个特殊变量 $today为今天,$today-n 就是今天往前推n天 $today+n就是今天往后推n天
+{
+  "time_increase":{
+      "$1":"$today-1",
+      "$2":"$today"
+}
+}
 
+params字段设置完毕,static_rule 统计规则设置为:
 
+select order_date,count(order_id) as orders,sum(order_amount) as order_amount
+from test.orders
+where order_time>="$1" and order_time < "$2"
+group by order_date
+
+程序会自动匹配$1 和$2的值去执行
 ```
-config := configor.Config
-NewMysqlClient(config,"conn.mysql")
-
+- 2.4 任务执行状态？通知?
 ```
+机器人报警支持了钉钉和企业微信,在dev.json配置roboter参数
+```
+
+- 2.5 自动建表功能
+```
+实际开发我们可能需要先创建表结构,然后再编写代码,gosqltask考虑到了这些经常做的问题,针对select语句可以自动获取schema,会默认在$to_db数据库创建$table表(如果已经建好表也不会报错),数据类型默认都是varchar(255),并且添加了默认主键和入库时间/更新时间字段,如果sql里select语句很长,可以先让程序建表,开发者对自动创建的表结构修改一下数据类型即可,
+```
+
