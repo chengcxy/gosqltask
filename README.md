@@ -1,11 +1,11 @@
 ## 一.gosqltask
+> 开发这个工具的初衷是作者实际工作当中需要经常性的写一些sql脚本去取数据或者生成中间表再去加工数据,充斥着重复的逻辑开发。因此将重复开发的部分抽象了reader和writer做成了可配置化的工具
 
-gosqltask,使用go执行sql任务,面向数据开发/数据分析者的可配置化自动化工具。当执行的sql读取的是超千万数据量级别的大表时,可通过配置表的切分条件,一般是主键自增id或者业务id(整数)索引进行切分,按batch切分读取数据,利用go的通道和协程特性去快速执行读取写入任务。
+- 1.1 gosqltask使用go执行sql任务,面向数据开发/数据分析者的可配置化自动化工具。当执行的sql读取的是超千万数据量级别的大表时,可通过配置表的切分条件,一般是主键自增id或者业务id(整数)索引进行切分,按batch切分读取数据,利用go的通道和协程特性去快速执行读取写入任务。
 
-gosqltask 适用于数据开发和数据分析人员以及经常写sql的同学,暂时支持的读写客户端限于mysql(由于spark官方还未支持go,经常写hivesql/sparksql的可以用python/scala语言实现)
+- 1.2 gosqltask适用于数据开发和数据分析人员以及经常写sql的同学,暂时支持的读写客户端限于mysql(由于spark官方还未支持go,经常写hivesql/sparksql的可以用python/scala语言实现)
 
-开发这个工具的初衷是作者实际工作当中需要经常性的写一些sql脚本去取数据或者生成中间表再去加工数据,充斥着重复的逻辑开发。常规写脚本的方式可能是这样,下面以python开发需求作为案例
-
+- 1.3 常规开发模式,写脚本的方式可能是这样,下面以python开发需求作为案例
 
 ```python
 QUERY  = "select a,b,c from db.table"
@@ -48,14 +48,21 @@ if __name__ == "__main__":
      obj.process()
 ```
 
-那么当再来需求的时候,怎么办呢？将QUERY变量和INSERT变量的值换一下,重新建一个py脚本.
+当再来需求的时候,怎么办呢？将QUERY变量和INSERT变量的值换一下,重新建一个py脚本.
 从上面的过程可以看出,每次变化的是读取的规则和写入的规则,处理流程也无非是这样:读到数据->处理数据->写入数据.
-有没有什么办法可以只关注业务逻辑的开发
-
+没有什么办法可以只关注业务逻辑的开发而减少代码量的编写？基于这个想法,开发这个工具
 
 ### 二.需要解决的问题
 
-- 2.1 如何定义一个sql任务,如何管理sql任务？
+- 2.1 配置文件 如何可拓展？
+```
+采用json配置文件,config 目录有2个json文件 这俩文件必须放在同一个目录,不一定放在本项目config目录
+1.dev.json 主要是任务表的配置和报警的信息配置,后面会加上log的配置
+2.db_global.json是一个全局数据库连接的配置,任务表里面$from_app_$from_db作为reader的key,$to_app_$to_db作为reader的key
+这样后面新增了from_app/from_db的时候 修改一下此文件即可纵向拓展
+```
+
+- 2.2 如何定义一个sql任务,如何管理sql任务？
 
 ``` go
 type TaskInfo  struct {
@@ -78,10 +85,18 @@ type TaskInfo  struct {
 }
 
 这里使用mysql表来存储任务,后面对这个表可以写api,实现任务的创建/提交执行/导出数据
-demo数据见data/sql_tasks.sql,这个表创建以后,dev.json里面taskmeta.conn需要修改为sql_tasks表所在的数据库信息
+表结构及案例见data/data.sql,这几个表创建在test数据库以后,dev.json里面taskmeta.conn需要修改为data.sql导入的表所在的test数据库信息。
 gosqltask虽然暂时只支持mysql2mysql的sql任务,这个表2个字段FromDbType和ToDbType 后面可以使用其他语言进行拓展,作者之前经常写spark任务,使用pyspark做成了配置的工具
 ```
-- 2.2 大表查询慢问题
+
+- 2.3 demo数据
+
+```
+demo的任务,依赖的test.orders/test.userinfo表,2.2将data.sql导入test数据库以后,可以自己写脚本mock数据一些大批量的数据测试一下.
+userinfo我本地mock了近960万数据。
+```
+
+- 2.4 大表查询慢问题
 ```
 params字段设置分割条件 json格式
 {
@@ -137,7 +152,7 @@ from (
 最终结果是运行了4s,性能提升近5倍
 
 ```
-- 2.3 增量条件如何传递 
+- 2.5 增量条件如何传递 
 ```
 如果时候我们需要跑一些增量统计,对增量表添加时间限制是最常用的办法,举例 每天增量的订单量/订单额
 
@@ -157,10 +172,10 @@ params字段 json格式 我们约定"$today"是获取北京时间的一个特殊
 
 params字段设置完毕,static_rule 统计规则设置为:
 
-select order_date,count(order_id) as orders,sum(order_amount) as order_amount
+select substr(order_time,1,10) as order_date,count(order_id) as orders,sum(order_amount) as order_amount
 from test.orders
 where order_time>="$1" and order_time < "$2"
-group by order_date
+group by substr(order_time,1,10)
 
 程序会自动匹配$1 和$2的值去执行
 
@@ -197,19 +212,37 @@ func (sd *Scheduler)getTimeValue(v string) string{
 	}
 }
 ```
-- 2.4 任务执行状态？通知?
+- 2.6 任务执行状态？通知?
 ```
 1.机器人报警支持了钉钉和企业微信,在dev.json配置roboter.token参数
 2.任务表配置了开发者的手机号,这样即使某个人离职或者变更了开发组,可批量更新开发者手机号无需更改代码。
 3.考虑有的人不希望将手机号暴露在数据库 dev.json配置roboter配置里面@的手机号可填写一个默认值放在服务器,但我认为没啥必要,毕竟也就只有使用这个表的人可以看到
 ```
 
-- 2.5 自动建表功能
+- 2.7 自动建表功能
 
 ```
 1.实际开发我们可能需要先创建表结构,然后再编写代码,gosqltask考虑到了这些经常做的问题.
 2.针对select语句可以自动获取schema,会默认在$to_db数据库创建$table表(如果已经建好表也不会报错)
 3.自动建的表数据类型默认都是varchar(255),并且添加了默认主键和入库时间/更新时间字段
 如果写入的字段很多,可以先让程序建表,开发者对自动创建的表结构修改一下数据类型即可
+```
+
+- 2.8 程序支持的命令行参数
+```
+-c 配置文件目录 
+-e配置文件名称
+-d debug debug=true时候 默认打印执行的sql(如果是任务池提交,默认打印$start=0 && $end=10000区间的sql便于看sql语句是否渲染正常)
+-id 任务id
+
+a.默认读取./config/dev.json 调试运行任务id=2
+go run gosqltask.go --debug=true -id 2 
+
+
+b.默认读取./config/dev.json 运行任务id=2
+go run gosqltask.go --debug=false -id 2 
+
+b.默认读取具体路径的test配置文件 运行任务id=2
+go run gosqltask.go -c xxx -e test --debug=false -id 2 
 ```
 
