@@ -52,7 +52,7 @@ type TaskPoolParams struct {
 	Pk string `json:"pk"`
 	WorkerNum  int `json:"worker_num"`
 	ReadBatch  int `json:"read_batch"`
-    WriteBatch  int `json:"write_batch"`
+	WriteBatch  int `json:"write_batch"`
 }
 
 
