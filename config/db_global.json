@@ -1,9 +1,9 @@
 {
     "from": {
         "mysql": {
-            "local_dw_z_pe": {
+            "local_dw_test": {
                 "charset": "utf8",
-                "db": "z_pe",
+                "db": "test",
                 "host": "localhost",
                 "password": "123456",
                 "port": 3306,
@@ -14,9 +14,9 @@
     },
     "to": {
         "mysql": {
-            "local_dw_z_pe": {
+            "local_dw_test": {
                 "charset": "utf8",
-                "db": "z_pe",
+                "db": "test",
                 "host": "localhost",
                 "password": "123456",
                 "port": 3306,

@@ -4,7 +4,7 @@
             "host": "localhost",
             "user": "root",
             "password": "123456",
-            "db": "z_pe",
+            "db": "test",
             "port": 3306,
             "charset": "utf8",
             "MaxOpenConns":1,
