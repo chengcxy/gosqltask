@@ -212,11 +212,11 @@ func (sd *Scheduler)getTimeValue(v string) string{
 	}
 }
 ```
-- 2.6 任务执行状态？通知?
+- 2.6 任务执行状态？通知? gotools/roboter.roboter.go.SendMsg需要增加一个手机号的判断
 ```
 1.机器人报警支持了钉钉和企业微信,在dev.json配置roboter.token参数
 2.任务表配置了开发者的手机号,这样即使某个人离职或者变更了开发组,可批量更新开发者手机号无需更改代码。
-3.考虑有的人不希望将手机号暴露在数据库 dev.json配置roboter配置里面@的手机号可填写一个默认值放在服务器,但我认为没啥必要,毕竟也就只有使用这个表的人可以看到
+3.考虑有的人不希望将手机号暴露在数据库,dev.json配置roboter配置里面@的手机号可填写一个默认值放在服务器,但我认为没啥必要,毕竟也就只有使用这个表的人可以看到
 ```
 
 - 2.7 自动建表功能
@@ -231,13 +231,15 @@ func (sd *Scheduler)getTimeValue(v string) string{
 - 2.8 程序支持的命令行参数
 ```
 -c 配置文件目录 
--e配置文件名称
--d debug debug=true时候 默认打印执行的sql(如果是任务池提交,默认打印$start=0 && $end=10000区间的sql便于看sql语句是否渲染正常)
--id 任务id
+-e 配置文件名称
+-d debug debug=true时候 默认打印执行的sql(如果是任务池提交,默认打印$start=0 && $end=10000区间的sql,
+    便于查看sql语句是否正确
+  )
+-id sql_tasks.任务id
 
+例子:
 a.默认读取./config/dev.json 调试运行任务id=2
 go run gosqltask.go --debug=true -id 2 
-
 
 b.默认读取./config/dev.json 运行任务id=2
 go run gosqltask.go --debug=false -id 2 
@@ -245,4 +247,6 @@ go run gosqltask.go --debug=false -id 2
 b.默认读取具体路径的test配置文件 运行任务id=2
 go run gosqltask.go -c xxx -e test --debug=false -id 2 
 ```
+
+- 2.9 webapi有待开发 暂时支持服务器终端命令行运行
 
