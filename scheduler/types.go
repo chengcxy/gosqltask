@@ -57,10 +57,9 @@ type TaskPoolParams struct {
 
 
 var PrintLogTemplate = `
-TaskId:%s
-sql:%s,
-params:pass
-
+gosqltask任务id:%s
+任务描述:%s
+执行完毕
 `
 
 type Job struct{

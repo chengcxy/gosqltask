@@ -185,7 +185,7 @@ func (sd *Scheduler)GenJobs(Jobchan chan *Job){
 	start_ends := sd.GetStartEnds(MinId,MaxId)
 	for _,ls := range start_ends{
 		start,end := ls[0],ls[1]
-		fmt.Println("start,end ",start,end)
+		log.Println("start,end ",start,end)
 		for start < end {
 			_end := start + sd.taskPoolParams.ReadBatch
 			if _end > end {
@@ -196,10 +196,11 @@ func (sd *Scheduler)GenJobs(Jobchan chan *Job){
 				End:   _end,
 			}
 			Jobchan <- p
-			fmt.Println("push params ", p)
+			log.Println("producer job params ", p)
 			start = _end
 		}
 	}
+	log.Println("producer job params finished ")
 	close(Jobchan)
 }
 
@@ -222,9 +223,9 @@ func (sd *Scheduler)SingleThread(start,end int)(int64,bool,int){
 			log.Fatal(err)
 		}
 		if sd.isCrossDbInstance{
-			return sd.writer.Write(sd.taskInfo.ToDb,sd.taskInfo.ToTable,columns,is_create_table,datas,sd.taskPoolParams.WriteBatch)
+			return sd.writer.Write(sd.taskInfo.WriteMode,sd.taskInfo.ToDb,sd.taskInfo.ToTable,datas,columns,sd.taskPoolParams.WriteBatch,is_create_table)
 		}else{
-			return sd.reader.Write(sd.taskInfo.ToDb,sd.taskInfo.ToTable,columns,is_create_table,datas,sd.taskPoolParams.WriteBatch)
+			return sd.reader.Write(sd.taskInfo.WriteMode,sd.taskInfo.ToDb,sd.taskInfo.ToTable,datas,columns,sd.taskPoolParams.WriteBatch,is_create_table)
 		}
 	}else{
 		num,err := sd.reader.Execute(stam)
@@ -260,11 +261,12 @@ func(sd *Scheduler)SubmitTask(debug bool){
 
 	if !sd.IsExecutedPool{
 		sd.SingleThread(0,0)
-		sd.robot.SendMsg(" SingleThread executed finished")
 	}else{
 		sd.ThreadPool()
-		sd.robot.SendMsg(" pool executed finished")
+		
 	}
+	printLog := fmt.Sprintf(PrintLogTemplate,sd.taskId,sd.taskInfo.TaskDesc)
+	sd.robot.SendMsg(printLog)
 	sd.Close()
 	
 }

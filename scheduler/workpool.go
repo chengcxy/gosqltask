@@ -8,6 +8,8 @@ import(
 
 var wg sync.WaitGroup
 
+//var mutex sync.Mutex
+
 func NewWorkerPool(sd *Scheduler)*WorkerPool{
 	return &WorkerPool{
 		sd:sd,
@@ -23,6 +25,7 @@ func (p *WorkerPool)worker(workerId int){
 	defer wg.Done()
 	for job := range p.JobChan{
 		start,end := job.Start,job.End
+		//mutex.Lock()
 		num,_,status := p.sd.SingleThread(start,end)
 		result := &Result{
 			TaskId:p.sd.taskId,
@@ -33,6 +36,7 @@ func (p *WorkerPool)worker(workerId int){
 			Status:status,
 		}
 		p.ResultChan <- result
+		//mutex.Unlock()
 	}
 }
 
