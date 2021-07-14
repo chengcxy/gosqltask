@@ -290,3 +290,10 @@ from (
 ## 四.钉钉通知-报警
 
 ![通知](./docs/image/roboter.png)
+
+
+
+## 五.公众号文章拓展
+- 5.1 [数据平台管理后台的设计与实现](https://mp.weixin.qq.com/s/lzqoLZv37bzekEvGpZ8c5w)
+- 5.2 [5分钟内使用go对2张8000万表进行对比](https://mp.weixin.qq.com/s/ZNz789KYe3RcjMLvlAECyQ）
+- 5.3 [python-可配置化的数据同步及计算方案](https://mp.weixin.qq.com/s/nARKlyPNtqrtxC2EN3iZCw)
