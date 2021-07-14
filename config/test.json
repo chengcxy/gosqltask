@@ -1,0 +1,34 @@
+{
+    "taskmeta": {
+        "conn": {
+            "host": "localhost",
+            "user": "root",
+            "password": "admin2016",
+            "db": "z_pe",
+            "port": 3306,
+            "charset": "utf8",
+            "MaxOpenConns":1,
+            "MaxIdleConns":1
+        },
+        "query_task": "select * from sql_tasks where id=?"
+    },
+    "web": {
+        "host":"0.0.0.0",
+        "port": 8002,
+        "debug": false
+    },
+    "log": {
+        "log_path": "/data/www/pydatashift/log",
+        "level": "INFO",
+        "log_formatter": "%(asctime)s - %(filename)s -%(funcName)s - %(lineno)d - %(levelname)s - %(message)s"
+    },
+    "roboter": {
+        "token": "313d2bf318bfd3d078f63451f7d7c61738b567eef8f42572a9d4781704f82c70",
+        "atMobiles": [
+            "18811788263"
+        ],
+        "isAtAll": false,
+        "roboter_type": "dingding",
+        "hook_keyword": "任务报警"
+    }
+}
