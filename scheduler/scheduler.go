@@ -25,18 +25,25 @@ func NewScheduler(config *configor.Config,taskId string) *Scheduler{
 }
 
 
+
 func (sd *Scheduler)getTimeValue(v string) string{
-	switch v {
-		case "$today":
-			return "2021-07-14"
-		case "$today-1":
-			return "2021-07-13"
-		case "$today+1":
-			return "2021-07-15"
-		default:
-			return "1970-01-01"
+	if v == "$today"{
+		return GetDateFromToday(0)
+	}else if strings.Contains(v,"$today-"){
+		num := strings.TrimSpace(strings.Replace(v,"$today-","",-1))
+		n,err := strconv.Atoi(num)
+		if err != nil{
+			log.Fatal(err)
+		}
+		return GetDateFromToday(-n)
+	}else{
+		num := strings.TrimSpace(strings.Replace(v,"$today+","",-1))
+		n,err := strconv.Atoi(num)
+		if err != nil{
+			log.Fatal(err)
+		}
+		return GetDateFromToday(n)
 	}
-	
 }
 
 func (sd *Scheduler)parseTimeIncrease(){
@@ -258,11 +265,19 @@ func(sd *Scheduler)SubmitTask(debug bool){
 		sd.ThreadPool()
 		sd.robot.SendMsg(" pool executed finished")
 	}
+	sd.Close()
 	
 }
-
+func (sd *Scheduler)Close(){
+	sd.reader.Close()
+	if sd.isCrossDbInstance{
+		sd.writer.Close()
+	}
+	log.Printf("close reader and writer if writer is not null")
+}
 func (sd *Scheduler)Run(debug bool){
 	log.Printf("taskInfo.Params is \n %s",sd.taskInfo.Params)
 	sd.parseTask()
 	sd.SubmitTask(debug)
+	
 }
