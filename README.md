@@ -244,8 +244,8 @@ go run gosqltask.go --debug=true -id 3
 b.默认读取./config/dev.json 运行任务id=3
 go run gosqltask.go --debug=false -id 3
 
-b.默认读取具体路径的test配置文件 运行任务id=3
-go run gosqltask.go -c xxx -e test --debug=false -id 3
+c.默认读取具体路径的test配置文件 运行任务id=3
+go run gosqltask.go -c 配置文件路径 -e test --debug=false -id 3
 ```
 
 - 2.9 webapi有待开发 暂时支持服务器终端命令行运行
