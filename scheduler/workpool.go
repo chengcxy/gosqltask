@@ -15,7 +15,7 @@ func NewWorkerPool(sd *Scheduler)*WorkerPool{
 		sd:sd,
 		JobChan:make(chan *Job),
 		ResultChan:make(chan *Result),
-		CollectResult:make(chan bool),
+		CollectResult:make(chan *LastResult),
 		
 	}
 }
@@ -40,7 +40,7 @@ func (p *WorkerPool)worker(workerId int){
 	}
 }
 
-func (p *WorkerPool)run(){
+func (p *WorkerPool)run()(int64,bool,int){
 	//worker
 	for i:=1;i<= p.sd.taskPoolParams.WorkerNum;i++{
 		wg.Add(1)
@@ -53,13 +53,23 @@ func (p *WorkerPool)run(){
 		close(p.ResultChan)
 	}()
 	go func(){
+		var n int64
+		status := 0
 		for result := range p.ResultChan{
 			log.Println(result)
+			n += result.Num
+			if result.Status == 1{
+				status = 1
+			}
 		}
-		p.CollectResult <- true
+		lr := &LastResult{
+			Num:n,
+			Status:status,
+		}
+		p.CollectResult <- lr
 	}()
-	<- p.CollectResult
-
+	lr := <- p.CollectResult
+	return lr.Num,false,lr.Status
 }
 
 

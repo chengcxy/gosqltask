@@ -27,12 +27,10 @@ func init() {
 
 
 func main(){
-	startTime := time.Now()
+	StartTime := time.Now()
 	config := configor.NewConfig(ConfigPath, Env)
-	sd := scheduler.NewScheduler(config,TaskId)
+	sd := scheduler.NewScheduler(config,TaskId,StartTime)
 	sd.Run(Debug)
-	endTime := time.Now()
-	log.Println("costs ",endTime.Sub(startTime))
 }
 
 

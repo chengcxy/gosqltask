@@ -4,6 +4,7 @@ package scheduler
 import (
 	"fmt"
 	"log"
+	"time"
 	"encoding/json"
 	"strings"
 	"strconv"
@@ -14,10 +15,11 @@ import (
 
 
 
-func NewScheduler(config *configor.Config,taskId string) *Scheduler{
+func NewScheduler(config *configor.Config,taskId string,startTime time.Time) *Scheduler{
 	sd := &Scheduler{
 		config:config,
 		taskId:taskId,
+		startTime:startTime,
 		robot:roboter.GetRoboter(config),
 	}
 	sd.GetTaskInfo()
@@ -236,9 +238,9 @@ func (sd *Scheduler)SingleThread(start,end int)(int64,bool,int){
 	}
 }
 
-func (sd *Scheduler)ThreadPool(){
+func (sd *Scheduler)ThreadPool()(int64,bool,int){
 	p := NewWorkerPool(sd)
-	p.run()
+	return p.run()
 }
 
 func(sd *Scheduler)SubmitTask(debug bool){
@@ -258,14 +260,27 @@ func(sd *Scheduler)SubmitTask(debug bool){
 		sd.writer = NewMysqlClient(sd.globalDbConfig,writerKey)	
 	}
 	//根据params参数判断是单线程执行还是多线程执行
-
+	var num int64 
+	status := 0
 	if !sd.IsExecutedPool{
-		sd.SingleThread(0,0)
+		num,_,status = sd.SingleThread(0,0)
 	}else{
-		sd.ThreadPool()
-		
+		num,_,status = sd.ThreadPool()
 	}
-	printLog := fmt.Sprintf(PrintLogTemplate,sd.taskId,sd.taskInfo.TaskDesc)
+	endTime := time.Now() 
+	Costs := endTime.Sub(sd.startTime)
+	strStatus := "成功"
+	if status == 1{
+		strStatus = "失败"
+	}
+	printLog := fmt.Sprintf(PrintLogTemplate,
+		sd.taskId,
+		sd.taskInfo.TaskDesc,
+		sd.startTime.Format(DayTimeSecondFormatter),
+		endTime.Format(DayTimeSecondFormatter),
+		Costs,
+		strStatus,
+		num)
 	sd.robot.SendMsg(printLog)
 	sd.Close()
 	

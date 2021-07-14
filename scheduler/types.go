@@ -1,6 +1,7 @@
 package scheduler
 
 import (
+	"time"
 	"github.com/chengcxy/gotools/configor"
 	"github.com/chengcxy/gotools/roboter"
 )
@@ -8,6 +9,7 @@ import (
 type Scheduler struct {
 	config *configor.Config // 配置
 	taskId string			// 任务id
+	startTime time.Time     // 程序运行开始时间
 	robot roboter.Roboter   // 机器人
 	taskInfo *TaskInfo		// 任务信息
 	runQuery bool           // 是否执行数据库查询
@@ -23,7 +25,7 @@ type Scheduler struct {
 }
 
 
-
+var DayTimeSecondFormatter = "2006-01-02 15:04:05"
 var GlobalDBConfigJsonFile = "db_global"
 
 type TaskInfo  struct {
@@ -57,9 +59,13 @@ type TaskPoolParams struct {
 
 
 var PrintLogTemplate = `
-gosqltask任务id:%s
-任务描述:%s
-执行完毕
+gosqltask任务id:%s,执行完毕
+任务描述:%s,
+开始时间:%s
+结束时间:%s
+任务耗时:%s
+任务状态:%s
+影响的数据库行数:%d
 `
 
 type Job struct{
@@ -73,14 +79,19 @@ type Result struct {
 	Start int
 	End int
 	Num int64
-	Status int
+	Status int //状态 0成功 1失败
 	
+}
+
+type LastResult  struct {
+	Num int64
+	Status int
 }
 type WorkerPool struct{
 	sd *Scheduler
 	JobChan chan *Job
 	ResultChan chan *Result
-	CollectResult chan bool
+	CollectResult chan *LastResult
 }
 
 
