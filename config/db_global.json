@@ -1,0 +1,26 @@
+{
+    "from":{
+        "mysql":{
+            "local_dw_z_pe":{
+                "host": "localhost",
+                "user": "root",
+                "password": "admin2016",
+                "db": "z_pe",
+                "port": 3306,
+                "charset": "utf8"
+            }
+        }
+    },
+    "to":{
+        "mysql":{
+            "local_dw_z_pe":{
+                "host": "localhost",
+                "user": "root",
+                "password": "admin2016",
+                "db": "z_pe",
+                "port": 3306,
+                "charset": "utf8"
+            }
+        }
+    }
+}
