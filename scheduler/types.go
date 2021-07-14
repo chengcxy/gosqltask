@@ -60,7 +60,7 @@ type TaskPoolParams struct {
 
 var PrintLogTemplate = `
 gosqltask任务id:%s,执行完毕
-任务描述:%s,
+任务描述:%s
 开始时间:%s
 结束时间:%s
 任务耗时:%s
