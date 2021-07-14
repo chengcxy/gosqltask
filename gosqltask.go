@@ -4,6 +4,7 @@ package main
 import (
 	"flag"
 	"log"
+	"time"
 	"github.com/chengcxy/gotools/configor"
 	"github.com/chengcxy/gosqltask/scheduler"
 )
@@ -16,7 +17,7 @@ var Debug bool
 
 func init() {
 	flag.StringVar(&ConfigPath, "c", "./config/", "配置文件目录")
-	flag.StringVar(&Env, "e", "test", "运行的环境-json文件前缀 dev/test/prod/local")
+	flag.StringVar(&Env, "e", "dev", "运行的环境-json文件前缀 dev/test/prod/local")
 	flag.StringVar(&TaskId, "id", "1",  "任务id")
 	flag.BoolVar(&Debug, "d", false, "debug执行的sql")
 	flag.BoolVar(&Debug, "debug", false, "debug执行的sql")
@@ -26,8 +27,9 @@ func init() {
 
 
 func main(){
+	StartTime := time.Now()
 	config := configor.NewConfig(ConfigPath, Env)
-	sd := scheduler.NewScheduler(config,TaskId)
+	sd := scheduler.NewScheduler(config,TaskId,StartTime)
 	sd.Run(Debug)
 }
 

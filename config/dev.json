@@ -4,11 +4,13 @@
             "host": "localhost",
             "user": "root",
             "password": "123456",
-            "db": "z_pe",
+            "db": "test",
             "port": 3306,
-            "charset": "utf8"
+            "charset": "utf8",
+            "MaxOpenConns":1,
+            "MaxIdleConns":1
         },
-        "query_task": "select * from sql_tasks where id=?"
+        "query_task": "select * from sql_tasks where id=? and online_status=0"
     },
     "roboter": {
         "token": "3***********************************0",

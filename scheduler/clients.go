@@ -245,7 +245,7 @@ func (m *MysqlClient) Execute(stmt string, args ...interface{}) (int64, error){
 }
 
 
-func (m *MysqlClient) Write(to_db,to_table string,columns []string,is_create_table bool,datas []map[string]string,write_batch int)(int64,bool,int){
+func (m *MysqlClient) Write(write_mode,to_db,to_table string,datas []map[string]string,columns []string,write_batch int,is_create_table bool)(int64,bool,int){
 	status := 0
 	var num int64
 	num = 0
@@ -300,7 +300,7 @@ func (m *MysqlClient) Write(to_db,to_table string,columns []string,is_create_tab
 		return 0,is_create_table,status
 	}else{
 		insert_str := strings.Join(columns,",")
-		insert_sql := fmt.Sprintf("insert into %s.%s(%s)values",to_db,to_table,insert_str)
+		insert_sql := fmt.Sprintf("%s into %s.%s(%s)values",write_mode,to_db,to_table,insert_str)
 		question_sign := make([]string,len(columns))
 		for i,_ := range columns{
 			question_sign[i] = "?"

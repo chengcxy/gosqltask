@@ -1,26 +1,29 @@
 {
-    "from":{
-        "mysql":{
-            "local_dw_z_pe":{
+    "from": {
+        "mysql": {
+            "local_dw_test": {
+                "charset": "utf8",
+                "db": "test",
                 "host": "localhost",
-                "user": "root",
-                "password": "admin2016",
-                "db": "z_pe",
+                "password": "123456",
                 "port": 3306,
-                "charset": "utf8"
+                "user": "root"
             }
+           
         }
     },
-    "to":{
-        "mysql":{
-            "local_dw_z_pe":{
+    "to": {
+        "mysql": {
+            "local_dw_test": {
+                "charset": "utf8",
+                "db": "test",
                 "host": "localhost",
-                "user": "root",
-                "password": "admin2016",
-                "db": "z_pe",
+                "password": "123456",
                 "port": 3306,
-                "charset": "utf8"
+                "user": "root"
             }
+         
         }
     }
 }
+
