@@ -139,15 +139,15 @@ from (
 ```
 - 2.3 增量条件如何传递 预计2021.07.15这个功能添加
 ```
-如果时候我们需要跑一些增量统计,对增量表添加时间限制是最常用的办法,举例 每天的订单量/订单额
+如果时候我们需要跑一些增量统计,对增量表添加时间限制是最常用的办法,举例 每天增量的订单量/订单额
 
 select order_date,count(order_id) as orders,sum(order_amount) as order_amount
 from test.orders
 where order_time >= "2021-07-13" and order_time < "2021-07-14"
 group by order_date
 
-我们可以将order_date>="2021-07-06" 这个条件 根据业务场景 配置到params
-params字段 json格式 我们约定  $today 是获取北京时间的一个特殊变量 $today为今天,$today-n 就是今天往前推n天 $today+n就是今天往后推n天
+我们可以将order_date>="2021-07-13" 这个条件 根据业务场景 配置到params
+params字段 json格式 我们约定"$today"是获取北京时间的一个特殊变量,$today为今天,$today-n 就是今天往前推n天 $today+n就是今天往后推n天 参数example:
 {
   "time_increase":{
       "$1":"$today-1",
@@ -199,11 +199,17 @@ func (sd *Scheduler)getTimeValue(v string) string{
 ```
 - 2.4 任务执行状态？通知?
 ```
-机器人报警支持了钉钉和企业微信,在dev.json配置roboter参数
+1.机器人报警支持了钉钉和企业微信,在dev.json配置roboter.token参数
+2.任务表配置了开发者的手机号,这样即使某个人离职或者变更了开发组,可批量更新开发者手机号无需更改代码。
+3.考虑有的人不希望将手机号暴露在数据库 dev.json配置roboter配置里面@的手机号可填写一个默认值放在服务器,但我认为没啥必要,毕竟也就只有使用这个表的人可以看到
 ```
 
 - 2.5 自动建表功能
+
 ```
-实际开发我们可能需要先创建表结构,然后再编写代码,gosqltask考虑到了这些经常做的问题,针对select语句可以自动获取schema,会默认在$to_db数据库创建$table表(如果已经建好表也不会报错),数据类型默认都是varchar(255),并且添加了默认主键和入库时间/更新时间字段,如果sql里select语句很长,可以先让程序建表,开发者对自动创建的表结构修改一下数据类型即可,
+1.实际开发我们可能需要先创建表结构,然后再编写代码,gosqltask考虑到了这些经常做的问题.
+2.针对select语句可以自动获取schema,会默认在$to_db数据库创建$table表(如果已经建好表也不会报错)
+3.自动建的表数据类型默认都是varchar(255),并且添加了默认主键和入库时间/更新时间字段
+如果写入的字段很多,可以先让程序建表,开发者对自动创建的表结构修改一下数据类型即可
 ```
 
