@@ -4,6 +4,7 @@ package main
 import (
 	"flag"
 	"log"
+	"time"
 	"github.com/chengcxy/gotools/configor"
 	"github.com/chengcxy/gosqltask/scheduler"
 )
@@ -26,9 +27,12 @@ func init() {
 
 
 func main(){
+	startTime := time.Now()
 	config := configor.NewConfig(ConfigPath, Env)
 	sd := scheduler.NewScheduler(config,TaskId)
 	sd.Run(Debug)
+	endTime := time.Now()
+	log.Println(endTime.Sub(startTime))
 }
 
 

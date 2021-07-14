@@ -13,7 +13,9 @@ type Scheduler struct {
 	runQuery bool           // 是否执行数据库查询
 	isCrossDbInstance bool 	// 是否跨越数据库实例
 	IsExecutedPool bool     // 是否使用协程池 params非空的且含有worker_num
-	taskPoolParams TaskPoolParams // 任务params
+	IsUseTimeIncrease bool  // 是否含有日期增量
+	taskPoolParams TaskPoolParams // 任务worker池params
+	timeIncreaseParams map[string]string //增量时间params
 	globalDbConfig *configor.Config // 全局数据库配置
 	reader *MysqlClient
 	writer *MysqlClient
@@ -52,7 +54,6 @@ type TaskPoolParams struct {
 	ReadBatch  int `json:"read_batch"`
     WriteBatch  int `json:"write_batch"`
 }
-
 
 
 var PrintLogTemplate = `

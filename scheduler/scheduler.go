@@ -24,6 +24,31 @@ func NewScheduler(config *configor.Config,taskId string) *Scheduler{
 	return sd
 }
 
+
+func (sd *Scheduler)getTimeValue(v string) string{
+	switch v {
+		case "$today":
+			return "2021-07-14"
+		case "$today-1":
+			return "2021-07-13"
+		case "$today+1":
+			return "2021-07-15"
+		default:
+			return "1970-01-01"
+	}
+	
+}
+
+func (sd *Scheduler)parseTimeIncrease(){
+	if sd.IsUseTimeIncrease{
+		m := make(map[string]string)
+		for k,v := range sd.timeIncreaseParams{
+			m[k] = sd.getTimeValue(v)
+		}
+		sd.timeIncreaseParams = m
+	}
+}
+
 func (sd *Scheduler)GetTaskInfo(){
 	qt,ok := sd.config.Get("taskmeta.query_task")
 	if !ok{
@@ -70,24 +95,39 @@ func (sd *Scheduler)parseTask(){
 		sd.isCrossDbInstance = false
 	}
 	sd.IsExecutedPool = false
-	if sd.taskInfo.Params != "NULL" && strings.Contains(sd.taskInfo.Params,"worker_num"){
-		sd.IsExecutedPool = true
-	}
-	if sd.IsExecutedPool{
+	sd.IsUseTimeIncrease = false
+	if sd.taskInfo.Params != "NULL"{
 		var f map[string]interface{}
 		err := json.Unmarshal([]byte(sd.taskInfo.Params),&f)
 		if err != nil{
 			log.Fatal("task.params Json Unmarshal err")
 		}
-		mapBytes,err := json.Marshal(f["split"])
-		if err != nil{
-			log.Fatal("task.params.split Json Marshal err")
+		if strings.Contains(sd.taskInfo.Params,"time_increase"){
+			sd.IsUseTimeIncrease = true
+			mapBytes,err := json.Marshal(f["time_increase"])
+			if err != nil{
+				log.Fatal("task.params.time_increase Json Marshal err")
+			}
+			err = json.Unmarshal(mapBytes,&sd.timeIncreaseParams)
+			if err != nil{
+				log.Fatal("task.params.time_increase bytes trans for sd.timeIncreaseParams err")
+			}
+			log.Println(sd.timeIncreaseParams)
+			sd.parseTimeIncrease()
+
 		}
-		err = json.Unmarshal(mapBytes,&sd.taskPoolParams)
-		if err != nil{
-			log.Fatal("task.params.split bytes trans for sd.taskPoolParams err")
-		}
-		
+	   	if strings.Contains(sd.taskInfo.Params,"worker_num"){
+			sd.IsExecutedPool = true
+			mapBytes,err := json.Marshal(f["split"])
+			if err != nil{
+				log.Fatal("task.params.split Json Marshal err")
+			}
+			err = json.Unmarshal(mapBytes,&sd.taskPoolParams)
+			if err != nil{
+				log.Fatal("task.params.split bytes trans for sd.taskPoolParams err")
+			}
+
+	  }
 	}
 	sd.RenderSql()
 	//获取全局数据库连接
@@ -101,6 +141,11 @@ func (sd *Scheduler)RenderSql()string{
 	if sd.IsExecutedPool{
 		query = strings.Replace(query,`$table`,sd.taskPoolParams.Table,-1)
 		query = strings.Replace(query,`$pk`,sd.taskPoolParams.Pk,-1)
+	}
+	if sd.IsUseTimeIncrease{
+		for k,v := range sd.timeIncreaseParams{
+			query = strings.Replace(query,k,v,-1)
+		}
 	}
 	sd.taskInfo.StaticRule = query
 	return query
