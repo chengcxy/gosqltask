@@ -3,7 +3,7 @@
 
 - 1.1 gosqltask使用go执行sql任务,面向数据开发/数据分析者的可配置化自动化工具。当执行的sql读取的是超千万数据量级别的大表时,可通过配置表的切分条件,一般是主键自增id或者业务id(整数)索引进行切分,按batch切分读取数据,利用go的通道和协程特性去快速执行读取写入任务。
 
-- 1.2 gosqltask适用于数据开发和数据分析人员以及经常写sql的同学,暂时支持的读写客户端限于mysql(由于spark官方还未支持go,经常写hivesql/sparksql的可以用python/scala语言实现) [python-可配置化的数据同步及计算方案](https://mp.weixin.qq.com/s/nARKlyPNtqrtxC2EN3iZCw) 
+- 1.2 gosqltask适用于数据开发和数据分析人员以及经常写sql的同学,暂时支持的读写客户端限于mysql(由于spark官方还未支持go,经常写hivesql/sparksql的可以用python/scala语言实现) [python-可配置化的数据同步及大数据计算方案](https://mp.weixin.qq.com/s/nARKlyPNtqrtxC2EN3iZCw) 
 
 - 1.3 常规开发模式,写脚本的方式可能是这样,下面以python开发需求作为案例
 
