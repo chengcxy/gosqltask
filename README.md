@@ -381,10 +381,6 @@ gosqltask后面的拓展性,如何支持更多的客户端的读写,mongo2mysql/
 当传入 -id=1 的时候 查询下from_db_type和to_db_type的值,从模板目录找到$from_db_type2$to_db_type的模板,将任务的信息 表的schema等渲染进去,应该是可以做到的。
 
 
-
 如何和调度系统打通,任务是有依赖的,推荐使用Dolphinscheduler开源调度工具,比python的airflow更简单,也符合中国人的操作习惯.
-
-
-
 
 ```
