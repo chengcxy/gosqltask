@@ -365,9 +365,9 @@ gosqltask任务id:3,执行完毕
 输出为'xxx'
 
 
-datax已经足够优秀,但我想还有改进的空间:
+类似的导入导出工具datax已经足够优秀,但我想还有改进的空间:
 比如:
-  1.比如配置文件的自动生成,现在先建一个任务应该还是需要手动配置json文件,gosqltask 采用的是将reader和writer的配置
+  1.比如配置文件的自动生成,现在使用datax建一个任务应该还是需要手动配置json文件,gosqltask 采用的是将reader和writer的配置
     放在每个任务的$from_app_$from_db 和 $to_app_$to_db里面,db_global.json可以存放各个数据库的配置,以mysql为例，一个数据库实例里面可能有n个表,公用一个数据库实例的config就可以了,不用每个表都去配置1个源.
     获取reader和writer配置可以是基础的公用方法
     readerKey := fmt.Sprintf("from.mysql.%s_%s",sd.taskInfo.FromApp,sd.taskInfo.FromDb)
