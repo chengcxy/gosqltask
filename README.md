@@ -314,7 +314,7 @@ gosqltask任务id:3,执行完毕
 ```
 
 任务3统计的结果已经自动写到了test.temp_static_by_pool表
-![通知](./docs/image/task3.png)
+![数据](./docs/image/task3.png)
 
 ## 四.注意事项
 
