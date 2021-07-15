@@ -281,7 +281,7 @@ func(sd *Scheduler)SubmitTask(debug bool){
 		Costs,
 		strStatus,
 		num)
-	sd.robot.SendMsg(printLog)
+	sd.robot.SendMsg(printLog,sd.taskInfo.Owner)
 	sd.Close()
 	
 }

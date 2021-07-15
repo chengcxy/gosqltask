@@ -3,7 +3,7 @@
         "conn": {
             "host": "localhost",
             "user": "root",
-            "password": "admin2016",
+            "password": "123456",
             "db": "test",
             "port": 3306,
             "charset": "utf8",
