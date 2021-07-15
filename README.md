@@ -277,36 +277,40 @@ go run gosqltask.go -c 配置文件路径 -e test --debug=false -id 3
 
 ```
 ➜  gosqltask git:(master) ✗ go run gosqltask.go -e test --debug=false -id 3
-2021/07/14 17:45:14 ConfigPath: ./config/ ,Env: test ,TaskId: 3 Debug:false
-2021/07/14 17:45:14 QueryTaskSql is  select * from sql_tasks where id=? and online_status=0
-2021/07/14 17:45:14 ok! query taskmeta mysql client closed
-2021/07/14 17:45:14 taskInfo.Params is
+2021/07/15 11:14:33 ConfigPath: ./config/ ,Env: test ,TaskId: 3 Debug:false
+2021/07/15 11:14:33 QueryTaskSql is  select * from sql_tasks where id=?
+2021/07/15 11:14:33 ok! query taskmeta mysql client closed
+2021/07/15 11:14:33 taskInfo.Params is
  {"split":{"table":"test.userinfo","pk":"id","worker_num":20,"read_batch":20000,"write_batch":300}}
-2021/07/14 17:45:14 clean static_rule :
-
-select $start as start,$end as end,num
+2021/07/15 11:14:33 clean static_rule :select $start as start,$end as end,num
 from (
-  select count(1) as num
-  from $table
-  where $pk>$start and $pk<=$end
+	select count(1) as num
+	from $table
+        where $pk>$start and $pk<=$end
 ) as a
-
-2021/07/14 17:45:14 start,end  0 107800
-2021/07/14 17:45:14 producer job params  &{0 20000}
-2021/07/14 17:45:14 producer job params  &{20000 40000}
-2021/07/14 17:45:14 producer job params  &{40000 60000}
-2021/07/14 17:45:14 producer job params  &{60000 80000}
-2021/07/14 17:45:14 producer job params  &{80000 100000}
-2021/07/14 17:45:14 producer job params  &{100000 107800}
-2021/07/14 17:45:14 producer job params finished
-2021/07/14 17:45:14 &{3 12 100000 107800 1 0}
-2021/07/14 17:45:14 &{3 4 40000 60000 1 0}
-2021/07/14 17:45:14 &{3 1 20000 40000 1 0}
-2021/07/14 17:45:14 &{3 3 60000 80000 1 0}
-2021/07/14 17:45:14 &{3 5 80000 100000 1 0}
-2021/07/14 17:45:14 &{3 2 0 20000 1 0}
-2021/07/14 17:45:14 close reader and writer if writer is not null
-2021/07/14 17:45:14 costs 472.984236ms
+2021/07/15 11:14:33 truncate table test.temp_static_by_pool success
+2021/07/15 11:14:33 start,end  0 10000000
+2021/07/15 11:14:33 producer job params  &{0 20000}
+2021/07/15 11:14:33 producer job params  &{20000 40000}
+2021/07/15 11:14:33 producer job params  &{40000 60000}
+...
+2021/07/15 11:14:37 producer job params  &{9960000 9980000}
+2021/07/15 11:14:37 &{3 13 9700000 9720000 1 0}
+2021/07/15 11:14:37 producer job params  &{9980000 10000000}
+2021/07/15 11:14:37 producer job params finished
+2021/07/15 11:14:37 &{3 4 9680000 9700000 1 0}
+...
+2021/07/15 11:14:37 &{3 18 9980000 10000000 1 0}
+2021/07/15 11:14:37 &{3 9 9960000 9980000 1 0}
+2021/07/15 11:14:37
+gosqltask任务id:3,执行完毕
+任务描述:大表切分demo
+开始时间:2021-07-15 11:14:33
+结束时间:2021-07-15 11:14:37
+任务耗时:4.543000249s
+任务状态:成功
+影响的数据库行数:500
+2021/07/15 11:14:37 close reader and writer if writer is not null
 ```
 
 ## 四.注意事项
