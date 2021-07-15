@@ -5,7 +5,7 @@
                 "charset": "utf8",
                 "db": "test",
                 "host": "localhost",
-                "password": "123456",
+                "password": "admin2016",
                 "port": 3306,
                 "user": "root"
             }
@@ -18,7 +18,7 @@
                 "charset": "utf8",
                 "db": "test",
                 "host": "localhost",
-                "password": "123456",
+                "password": "admin2016",
                 "port": 3306,
                 "user": "root"
             }
