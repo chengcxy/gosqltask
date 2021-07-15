@@ -29,7 +29,7 @@ func NewScheduler(config *configor.Config,taskId string,startTime time.Time) *Sc
 
 
 func (sd *Scheduler)getTimeValue(v string) string{
-	if v == "$today"{
+	if strings.TrimSpace(v) == "$today"{
 		return GetDateFromToday(0)
 	}else if strings.Contains(v,"$today-"){
 		num := strings.TrimSpace(strings.Replace(v,"$today-","",-1))
