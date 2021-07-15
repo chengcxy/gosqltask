@@ -138,6 +138,11 @@ func (sd *Scheduler)parseTask(){
 
 	  }
 	}
+	if sd.isCrossDbInstance{
+		if sd.taskInfo.ToDb == "NULL" || sd.taskInfo.ToDb == ""  || sd.taskInfo.ToTable == "NULL" || sd.taskInfo.ToTable == ""{
+			log.Fatal("taskInfo.ToDb or taskInfo.ToTable is null or empty")
+		}
+	}
 	sd.RenderSql()
 	//获取全局数据库连接
 	sd.globalDbConfig = configor.NewConfig(sd.config.ConfigPath,GlobalDBConfigJsonFile)
@@ -160,6 +165,7 @@ func (sd *Scheduler)RenderSql()string{
 	return query
 }
 
+//切分后续需使用算法切分 针对数据倾斜的做处理
 func (sd *Scheduler) GetStartEnds(MinId,MaxId int)([][]int){
 	start_ends := make([][]int,0)
 	if sd.taskPoolParams.Pk == "id"{
@@ -244,6 +250,9 @@ func (sd *Scheduler)ThreadPool()(int64,bool,int){
 }
 
 func(sd *Scheduler)SubmitTask(debug bool){
+	defer func(debug bool){
+		sd.Close(debug)
+	}(debug)
 	if debug {
 		if strings.Contains(sd.taskInfo.StaticRule,"$start"){
 			log.Printf("debugsql is:\n%s",sd.SplitSql(0,10000))
@@ -252,13 +261,24 @@ func(sd *Scheduler)SubmitTask(debug bool){
 		}
 		return 
 	}
+
 	readerKey := fmt.Sprintf("from.mysql.%s_%s",sd.taskInfo.FromApp,sd.taskInfo.FromDb)
 	sd.reader = NewMysqlClient(sd.globalDbConfig,readerKey)
 	//跨越数据库实例 一般跨库执行的是select语句 
 	if sd.isCrossDbInstance{
 		writerKey := fmt.Sprintf("to.mysql.%s_%s",sd.taskInfo.ToApp,sd.taskInfo.ToDb)
 		sd.writer = NewMysqlClient(sd.globalDbConfig,writerKey)	
+		if sd.taskInfo.IsTruncate == "0"{
+			truncateTbale := fmt.Sprintf("truncate table %s.%s",sd.taskInfo.ToDb,sd.taskInfo.ToTable)
+			_,err := sd.writer.Execute(truncateTbale)
+			if err != nil{
+				log.Fatal("truncate table error")
+			}else{
+				log.Printf("%s success",truncateTbale)
+			}
+		}
 	}
+	
 	//根据params参数判断是单线程执行还是多线程执行
 	var num int64 
 	status := 0
@@ -273,6 +293,7 @@ func(sd *Scheduler)SubmitTask(debug bool){
 	if status == 1{
 		strStatus = "失败"
 	}
+	
 	printLog := fmt.Sprintf(PrintLogTemplate,
 		sd.taskId,
 		sd.taskInfo.TaskDesc,
@@ -281,16 +302,20 @@ func(sd *Scheduler)SubmitTask(debug bool){
 		Costs,
 		strStatus,
 		num)
+	log.Println(printLog)
 	sd.robot.SendMsg(printLog,sd.taskInfo.Owner)
-	sd.Close()
+	
 	
 }
-func (sd *Scheduler)Close(){
-	sd.reader.Close()
-	if sd.isCrossDbInstance{
-		sd.writer.Close()
+func (sd *Scheduler)Close(debug bool){
+	if !debug{
+		sd.reader.Close()
+		if sd.isCrossDbInstance{
+			sd.writer.Close()
+		}
+		log.Printf("close reader and writer if writer is not null")
 	}
-	log.Printf("close reader and writer if writer is not null")
+	
 }
 func (sd *Scheduler)Run(debug bool){
 	log.Printf("taskInfo.Params is \n %s",sd.taskInfo.Params)

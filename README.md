@@ -59,7 +59,7 @@ if __name__ == "__main__":
 采用json配置文件,config 目录有2个json文件 这俩文件必须放在同一个目录,不一定放在本项目config目录
 1.dev.json 主要是任务表的配置和报警的信息配置,后面会加上log的配置
 2.db_global.json是一个全局数据库连接的配置,任务表里面$from_app_$from_db作为reader的key,$to_app_$to_db作为reader的key
-这样后面新增了from_app/from_db的时候 修改一下此文件即可纵向拓展
+这样后面新增了from_app/from_db的时候 修改一下此文件即可纵向拓展,所有的host连接应尽可能使用内网
 ```
 
 - 2.2 如何定义一个sql任务,如何管理sql任务？
@@ -99,11 +99,13 @@ userinfo我本地mock了1000万数据。
 
 - 2.4 大表查询慢问题
 ```
+gosqltask暂时支持按自增主键(整数型)进行切分,如果是非自增id列,需修改scheduler.GetStartEnds方法 此方法目前是针对我司id不连续避免空循环浪费特定,后面有待优化。按主键切分应该可以满足大部分数仓处理任务。
+
 params字段设置分割条件 json格式
 {
   "split":{
     "table":"test.userinfo", //分割的表
-    "pk":"id",               //根据哪个字段分割
+    "pk":"id",               //根据哪个字段分割 测试最好按主键
     "worker_num":20,         //多少个worker执行
     "read_batch":10000,        //根据$pk的值多少一个区间读取 拼接 where条件 $pk>0 and $pk<=$read_batch
     "write_batch":300        //批量写入的值
