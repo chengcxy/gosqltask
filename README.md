@@ -86,13 +86,15 @@ type TaskInfo  struct {
 
 这里使用mysql表来存储任务,后面对这个表可以写api,实现任务的创建/提交执行/导出数据
 表结构及案例见data/data.sql,这几个表创建在test数据库以后,dev.json里面taskmeta.conn需要修改为data.sql导入的表所在的test数据库信息。
-gosqltask虽然暂时只支持mysql2mysql的sql任务,这个表2个字段FromDbType和ToDbType 后面可以使用其他语言进行拓展,作者之前经常写spark任务,使用pyspark做成了配置的工具
+gosqltask虽然暂时只支持mysql2mysql的sql任务,这个表2个字段FromDbType和ToDbType 
+后面可以使用其他语言进行拓展,作者之前经常写spark任务,使用pyspark读取任务表配置的工具
 ```
 
 - 2.3 demo数据
 
 ```
-demo的任务,依赖的test.orders/test.userinfo表,2.2将data.sql导入test数据库以后,可以自己写脚本mock数据一些大批量的数据测试一下.
+demo的任务,依赖的test.orders/test.userinfo表,2.2步骤已经将data.sql导入test数据库。
+可以自己写脚本mock一些大批量的数据测试一下.
 userinfo我本地mock了1000万数据。
 ```
 
@@ -267,7 +269,6 @@ c.默认读取具体路径的test配置文件 运行任务id=3
 go run gosqltask.go -c 配置文件路径 -e test --debug=false -id 3
 ```
 
-- 2.10 webapi有待开发 暂时支持服务器终端命令行运行
 
 
 ## 三.运行日志
