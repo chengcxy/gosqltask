@@ -313,6 +313,9 @@ gosqltask任务id:3,执行完毕
 2021/07/15 11:14:37 close reader and writer if writer is not null
 ```
 
+任务3统计的结果已经自动写到了test.temp_static_by_pool表
+![通知](./docs/image/task3.png)
+
 ## 四.注意事项
 
 ### 一定要慎重!一定要慎重！一定要慎重！
