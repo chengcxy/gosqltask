@@ -328,7 +328,6 @@ gosqltask任务id:3,执行完毕
 ![通知](./docs/image/roboter.png)
 
 
-
 ## 六.公众号文章拓展
 - 6.1 [数据平台管理后台的设计与实现](https://mp.weixin.qq.com/s/lzqoLZv37bzekEvGpZ8c5w)
 - 6.2 [5分钟内使用go对2张8000万表进行对比](https://mp.weixin.qq.com/s/ZNz789KYe3RcjMLvlAECyQ)
@@ -337,7 +336,9 @@ gosqltask任务id:3,执行完毕
 
 ## 七.思考的问题
 ```
-在写这个工具之前,实时数据同步采用的是监听上游mysql的binlog到rabbitmq,后面消费消息队列写入到下游mysql的架构。
+在写这个工具之前,实时数据同步采用过2种方案
+    binlog --> rabbitmq --> mysql
+    binlog --> kafka --> hdfs -->hive--> sparksql 新增数据和历史数据union去重
 这里面也是充斥着大量的重复代码的开发,对不同的表而言,仅仅是表的schema不同而已,抓住了问题的本质,设计加实现并没有预想
 的那么困难。
 
@@ -378,9 +379,5 @@ datax已经足够优秀,但我想还有改进的空间:
    
 
 gosqltask后面的拓展性,如何支持更多的客户端的读写,mongo2mysql/mysql2mongo等等
-当传入 -id=1 的时候 查询下from_db_type和to_db_type的值,从模板目录找到$from_db_type2$to_db_type的模板,将任务的信息 表的schema等渲染进去,应该是可以做到的。
-
-
-如何和调度系统打通,任务是有依赖的,推荐使用Dolphinscheduler开源调度工具,比python的airflow更简单,也符合中国人的操作习惯.
-
+当传入 -id=1 的时候 查询下from_db_type和to_db_type的值,从模板目录找到$from_db_type2$to_db_type的模板,将任务的信息,表的schema等渲染进去,理论上应该是可以做到的
 ```
