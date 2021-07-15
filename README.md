@@ -278,7 +278,7 @@ go run gosqltask.go -c 配置文件路径 -e test --debug=false -id 3
 ```
 ➜  gosqltask git:(master) ✗ go run gosqltask.go -e test --debug=false -id 3
 2021/07/15 11:14:33 ConfigPath: ./config/ ,Env: test ,TaskId: 3 Debug:false
-2021/07/15 11:14:33 QueryTaskSql is  select * from sql_tasks where id=?
+2021/07/15 11:14:33 QueryTaskSql is  select * from sql_tasks where id=? and online_status=0
 2021/07/15 11:14:33 ok! query taskmeta mysql client closed
 2021/07/15 11:14:33 taskInfo.Params is
  {"split":{"table":"test.userinfo","pk":"id","worker_num":20,"read_batch":20000,"write_batch":300}}
