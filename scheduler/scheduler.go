@@ -100,7 +100,7 @@ func (sd *Scheduler)parseTask(){
 		sd.runQuery = false
 	}
 	sd.isCrossDbInstance = true
-	if strings.HasPrefix(RuleLower,"update")  || strings.HasPrefix(RuleLower,"insert")  || strings.HasPrefix(RuleLower,"delete") || strings.HasPrefix(RuleLower,"replace") || sd.taskInfo.FromApp == sd.taskInfo.ToApp{
+	if strings.HasPrefix(RuleLower,"update")  || strings.HasPrefix(RuleLower,"insert")  || strings.HasPrefix(RuleLower,"delete") || strings.HasPrefix(RuleLower,"replace"){
 		sd.isCrossDbInstance = false
 	}
 	sd.IsExecutedPool = false

@@ -93,8 +93,9 @@ gosqltask虽然暂时只支持mysql2mysql的sql任务,这个表2个字段FromDbT
 
 ```
 demo的任务,依赖的test.orders/test.userinfo表,2.2将data.sql导入test数据库以后,可以自己写脚本mock数据一些大批量的数据测试一下.
-userinfo我本地mock了近960万数据。
+userinfo我本地mock了1000万数据。
 ```
+
 
 - 2.4 大表查询慢问题
 ```
@@ -124,7 +125,7 @@ group by
      when id>10000 and id<=20000 then "(10000,20000]"
      ... else "[600000000,600010000]" end
 
-实际执行上面这个sql的时候 由于数据量过大会很慢,这张表900多万数据运行了近20s
+实际执行上面这个sql的时候 由于数据量过大会很慢,这张表1000万数据运行了近20s
 当按如下规则配置时由于命中了索引,执行会很快 
 select $start as start,$end as end,users
 from (
@@ -212,14 +213,30 @@ func (sd *Scheduler)getTimeValue(v string) string{
 	}
 }
 ```
-- 2.6 任务执行状态？通知? gotools/roboter.roboter.go.SendMsg需要增加一个手机号的判断
+
+- 2.6 表到表的同步 taskid=4 test.userinfo 导入到 test.userinfo3(先建好和userinfo一样的表结构)
+```
+统计规则设置为 select * from $table where $pk>$start and $pk <= $end
+
+
+任务报警:
+gosqltask任务id:4,执行完毕
+任务描述:从userinfo导入userinfo3
+开始时间:2021-07-15 10:11:10
+结束时间:2021-07-15 10:13:53
+任务耗时:2m42.993534555s
+任务状态:成功
+影响的数据库行数:10000000
+```
+
+- 2.7 任务执行状态？通知? gotools/roboter.roboter.go.SendMsg需要增加一个手机号的判断
 ```
 1.机器人报警支持了钉钉和企业微信,在dev.json配置roboter.token参数
 2.任务表配置了开发者的手机号,这样即使某个人离职或者变更了开发组,可批量更新开发者手机号无需更改代码。
 3.考虑有的人不希望将手机号暴露在数据库,dev.json配置roboter配置里面@的手机号可填写一个默认值放在服务器,但我认为没啥必要,毕竟也就只有使用这个表的人可以看到
 ```
 
-- 2.7 自动建表功能
+- 2.8 自动建表功能
 
 ```
 1.实际开发我们可能需要先创建表结构,然后再编写代码,gosqltask考虑到了这些经常做的问题.
@@ -228,7 +245,7 @@ func (sd *Scheduler)getTimeValue(v string) string{
 如果写入的字段很多,可以先让程序建表,开发者对自动创建的表结构修改一下数据类型即可
 ```
 
-- 2.8 程序支持的命令行参数
+- 2.9 程序支持的命令行参数
 ```
 -c 配置文件目录 
 -e 配置文件名称
@@ -248,7 +265,7 @@ c.默认读取具体路径的test配置文件 运行任务id=3
 go run gosqltask.go -c 配置文件路径 -e test --debug=false -id 3
 ```
 
-- 2.9 webapi有待开发 暂时支持服务器终端命令行运行
+- 2.10 webapi有待开发 暂时支持服务器终端命令行运行
 
 
 ## 三.运行日志
