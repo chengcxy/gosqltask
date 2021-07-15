@@ -214,7 +214,7 @@ func (sd *Scheduler)getTimeValue(v string) string{
 }
 ```
 
-- 2.6 表到表的同步 taskid=4 test.userinfo 导入到 test.userinfo3(先建好和userinfo一样的表结构)
+- 2.6 表到表的同步 taskid=4 test.userinfo 导入到 test.userinfo3(datas.sql会建好和userinfo一样的表结构)
 ```
 统计规则设置为 select * from $table where $pk>$start and $pk <= $end
 
@@ -304,13 +304,19 @@ from (
 2021/07/14 17:45:14 costs 472.984236ms
 ```
 
-## 四.钉钉通知-报警 后续会改进模板通知内容
+## 四.注意事项
+
+```
+任务表有一个字段is_truncate 代表是否先清空写入的表,is_truncate=0 代表先清空,=1代表不清空,所以我默认值设置为了1.
+当is_truncate=0时,$to_db.$to_table的值一定要慎重!一定要慎重！一定要慎重！
+```
+## 五.钉钉通知-报警 后续会改进模板通知内容
 
 ![通知](./docs/image/roboter.png)
 
 
 
-## 五.公众号文章拓展
+## 六.公众号文章拓展
 - 5.1 [数据平台管理后台的设计与实现](https://mp.weixin.qq.com/s/lzqoLZv37bzekEvGpZ8c5w)
 - 5.2 [5分钟内使用go对2张8000万表进行对比](https://mp.weixin.qq.com/s/ZNz789KYe3RcjMLvlAECyQ)
 - 5.3 [python-可配置化的数据同步及计算方案](https://mp.weixin.qq.com/s/nARKlyPNtqrtxC2EN3iZCw)
