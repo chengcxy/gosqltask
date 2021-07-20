@@ -1,3 +1,4 @@
 github.com/chengcxy/gotools v0.0.0-20210714110720-4e5254d2d740 h1:H268bHZcR1z+U3BAxceDOrxWv2iGC4HNn27ZKPKPMLo=
 github.com/chengcxy/gotools v0.0.0-20210714110720-4e5254d2d740/go.mod h1:AxDPVVIQtl2xG6eZUBOWlyF6pjpExYI2eEDjJ0KE0B0=
+github.com/go-sql-driver/mysql v1.6.0 h1:BCTh4TKNUYmOmMUcQ3IipzF5prigylS7XXjEkfCHuOE=
 github.com/go-sql-driver/mysql v1.6.0/go.mod h1:DCzpHaOWr8IXmIStZouvnhqoel9Qv2LBy8hT2VhHyBg=
