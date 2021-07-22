@@ -168,7 +168,7 @@ func (sd *Scheduler)RenderSql()string{
 //切分后续需使用算法切分 针对数据倾斜的做处理
 func (sd *Scheduler) GetStartEnds(MinId,MaxId int)([][]int){
 	start_ends := make([][]int,0)
-	if sd.taskPoolParams.Pk == "id"{
+	if strings.ToLower(sd.taskPoolParams.Pk) == "id" || strings.ToLower(sd.taskPoolParams.Pk) == "entid"{
 		ls := make([]int,2)
 		ls[0] = MinId
 		ls[1] = MaxId 
@@ -188,8 +188,8 @@ func (sd *Scheduler) GetStartEnds(MinId,MaxId int)([][]int){
 func (sd *Scheduler)GenJobs(Jobchan chan *Job){
 	db := strings.Split(sd.taskPoolParams.Table, ".")[0]
 	table := strings.Split(sd.taskPoolParams.Table, ".")[1]
-	MinId := sd.reader.GetMinId(db,table,sd.taskPoolParams.Pk)
-	MaxId := sd.reader.GetMaxId(db,table,sd.taskPoolParams.Pk)
+	MinId := sd.reader.GetMinId(db,table,strings.ToLower(sd.taskPoolParams.Pk))
+	MaxId := sd.reader.GetMaxId(db,table,strings.ToLower(sd.taskPoolParams.Pk))
 	start_ends := sd.GetStartEnds(MinId,MaxId)
 	for _,ls := range start_ends{
 		start,end := ls[0],ls[1]
