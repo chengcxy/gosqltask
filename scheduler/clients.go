@@ -2,14 +2,14 @@
 package scheduler
 
 import (
+	"database/sql"
 	"fmt"
+	"github.com/chengcxy/gotools/configor"
+	_ "github.com/go-sql-driver/mysql"
 	"log"
-	"time"
 	"strconv"
 	"strings"
-	"database/sql"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/chengcxy/gotools/configor"
+	"time"
 )
 
 
@@ -249,6 +249,10 @@ func (m *MysqlClient) Write(write_mode,to_db,to_table string,datas []map[string]
 	status := 0
 	var num int64
 	num = 0
+	_columns := make([]string,len(columns))
+	for index,col := range columns{
+		_columns[index] = fmt.Sprintf("`%s`",col)
+	}
 	if len(columns)>0 && is_create_table{
 		stmts := make([]string,len(columns))
 		schema := ""
@@ -299,7 +303,7 @@ func (m *MysqlClient) Write(write_mode,to_db,to_table string,datas []map[string]
 	if len(datas) == 0{
 		return 0,is_create_table,status
 	}else{
-		insert_str := strings.Join(columns,",")
+		insert_str := strings.Join(_columns,",")
 		insert_sql := fmt.Sprintf("%s into %s.%s(%s)values",write_mode,to_db,to_table,insert_str)
 		question_sign := make([]string,len(columns))
 		for i,_ := range columns{
