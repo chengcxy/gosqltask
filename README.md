@@ -1,9 +1,9 @@
 ## 一.gosqltask
-> 开发这个工具的初衷是作者实际工作当中需要经常性的写一些sql脚本去取数据或者生成中间表再去加工数据,充斥着重复的逻辑开发。因此将重复开发的部分抽象了reader和writer做成了可配置化的工具
+> 开发这个工具的初衷是实际工作当中需要经常性的写一些sql脚本去取数据或者生成中间表再去加工数据,充斥着重复的逻辑开发。因此将重复开发的部分做成了可配置化的工具
 
 - 1.1 gosqltask使用go执行sql任务,当执行的sql读取的是超千万数据量级别的大表时,可通过配置表的切分条件,一般是主键自增id或者业务id(整数)索引进行切分,按batch切分读取数据,利用go的通道和协程特性去快速执行读取写入任务。
 
-- 1.2 gosqltask适用于数据开发和数据分析人员以及经常写sql的同学,暂时支持的读写客户端限于mysql(由于spark官方还未支持go,经常写hivesql/sparksql的可以用python/scala语言实现) [python-可配置化的数据同步及大数据计算方案](https://mp.weixin.qq.com/s/nARKlyPNtqrtxC2EN3iZCw) 
+- 1.2 gosqltask适用于数据开发和数据分析人员以及经常写sql的同学,暂时支持的读写客户端限于mysql(由于spark官方还未支持go,经常写hivesql/sparksql的可以用python/scala语言实现)
 
 - 1.3 常规开发模式,写脚本的方式可能是这样,下面以python 单线程执行读写 作为案例
 
@@ -42,7 +42,8 @@ class Scheduler(object):
 if __name__ == "__main__":
      config = {
        "host":"xx",
-       "user":"xxx"
+       "user":"xxx",
+       ...
      }
      obj = Scheduler(config)
      obj.process()
@@ -50,16 +51,18 @@ if __name__ == "__main__":
 
 当再来需求的时候,怎么办呢？将QUERY变量和INSERT变量的值换一下,重新建一个py脚本.
 从上面的过程可以看出,每次变化的是读取的规则和写入的规则,处理流程也无非是这样:读到数据->处理数据->写入数据.
-有没有什么办法可以只关注业务逻辑的开发而减少代码量的编写？基于这个想法,学习go也半年多了,加深下对go的使用,开发这个工具
+有没有什么办法可以只关注业务逻辑的开发而减少代码量的编写？gosqltask尝试解决这样的问题
 
 ### 二.需要解决的问题
 
 - 2.1 配置文件 如何可拓展？
 ```
-采用json配置文件,config 目录有2个json文件 这俩文件必须放在同一个目录,不一定放在本项目config目录
+我们实际开发当中可能会在多个数据库实例进行操作,比如dev/test/pre/prod等不同的环境,我们可以将任务运行的环境放在一个task的属性字段里面。
+
+数据库连接采用json配置文件,config 目录有2个json文件 这俩文件必须放在同一个目录,不一定放在本项目config目录
 1.dev.json 主要是任务表的配置和报警的信息配置,后面会加上log的配置
 2.db_global.json是一个全局数据库连接的配置,任务表里面$from_app_$from_db作为reader的key,$to_app_$to_db作为writer的key
-这样后面新增了from_app/from_db的时候 修改一下此文件即可纵向拓展,所有的host连接应尽可能使用内网
+这样后面新增了from_app/from_db的时候 修改一下此文件即可纵向拓展,所有的host连接应尽可能使用内网。
 ```
 
 - 2.2 如何定义一个sql任务,如何管理sql任务？
@@ -87,7 +90,7 @@ type TaskInfo  struct {
 这里使用mysql表来存储任务,后面对这个表可以写api,实现任务的创建/提交执行/导出数据
 表结构及案例见data/data.sql,这几个表创建在test数据库以后,dev.json里面taskmeta.conn需要修改为data.sql导入的表所在的test数据库信息。
 gosqltask虽然暂时只支持mysql2mysql的sql任务,这个表2个字段FromDbType和ToDbType 
-后面可以使用其他语言进行拓展,作者之前经常写spark任务,使用pyspark读取任务表配置的工具
+后面可以使用其他语言进行拓展,丰富更多的reader和writer
 ```
 
 - 2.3 demo数据
@@ -102,7 +105,7 @@ userinfo我本地mock了1000万数据。
 - 2.4 大表查询慢问题
 ```
 gosqltask暂时支持按自增主键(整数型)进行切分,如果是非自增id列,需修改scheduler.GetStartEnds方法.
-此方法目前是针对我司id不连续避免空循环浪费特定,后面有待优化。
+此方法目前是针对id不连续避免空循环浪费特定
 按主键切分应该可以满足大部分数仓处理任务。
 
 params字段设置分割条件 json格式
@@ -326,10 +329,4 @@ gosqltask任务id:3,执行完毕
 ## 五.钉钉通知-报警 
 
 ![通知](./docs/image/roboter.png)
-
-
-## 六.公众号文章拓展
-- 6.1 [数据平台管理后台的设计与实现](https://mp.weixin.qq.com/s/lzqoLZv37bzekEvGpZ8c5w)
-- 6.2 [5分钟内使用go对2张8000万表进行对比](https://mp.weixin.qq.com/s/ZNz789KYe3RcjMLvlAECyQ)
-- 6.3 [python-可配置化的数据同步及计算方案](https://mp.weixin.qq.com/s/nARKlyPNtqrtxC2EN3iZCw)
 
