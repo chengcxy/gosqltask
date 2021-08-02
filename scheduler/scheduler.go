@@ -1,19 +1,15 @@
 package scheduler
 
-
 import (
-	"fmt"
-	"log"
-	"time"
 	"encoding/json"
-	"strings"
-	"strconv"
-    "github.com/chengcxy/gotools/configor"
+	"fmt"
+	"github.com/chengcxy/gotools/configor"
 	"github.com/chengcxy/gotools/roboter"
-) 
-
-
-
+	"log"
+	"strconv"
+	"strings"
+	"time"
+)
 
 func NewScheduler(config *configor.Config,taskId string,startTime time.Time) *Scheduler{
 	sd := &Scheduler{
@@ -249,6 +245,18 @@ func (sd *Scheduler)ThreadPool()(int64,bool,int){
 	return p.run()
 }
 
+func (sd *Scheduler) WriteTableExist()bool{
+	querySql := fmt.Sprintf(QueryResultTableExists,sd.taskInfo.ToDb,sd.taskInfo.ToTable)
+	datas,_,_ := sd.writer.Query(querySql)
+	if len(datas) == 1{
+		return true
+	}else{
+		log.Println("result table:",sd.taskInfo.ToDb,sd.taskInfo.ToTable,"not exists next will be created auto")
+		return false
+	}
+
+}
+
 func(sd *Scheduler)SubmitTask(debug bool){
 	defer func(debug bool){
 		sd.Close(debug)
@@ -269,13 +277,17 @@ func(sd *Scheduler)SubmitTask(debug bool){
 		writerKey := fmt.Sprintf("to.mysql.%s_%s",sd.taskInfo.ToApp,sd.taskInfo.ToDb)
 		sd.writer = NewMysqlClient(sd.globalDbConfig,writerKey)	
 		if sd.taskInfo.IsTruncate == "0"{
-			truncateTbale := fmt.Sprintf("truncate table %s.%s",sd.taskInfo.ToDb,sd.taskInfo.ToTable)
-			_,err := sd.writer.Execute(truncateTbale)
-			if err != nil{
-				log.Fatal("truncate table error")
-			}else{
-				log.Printf("%s success",truncateTbale)
+			writeTableExist := sd.WriteTableExist()
+			if writeTableExist{
+				truncateTbale := fmt.Sprintf("truncate table %s.%s",sd.taskInfo.ToDb,sd.taskInfo.ToTable)
+				_,err := sd.writer.Execute(truncateTbale)
+				if err != nil{
+					log.Fatal("truncate table error")
+				}else {
+					log.Printf("%s success", truncateTbale)
+				}
 			}
+
 		}
 	}
 	

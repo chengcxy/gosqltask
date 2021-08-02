@@ -1,10 +1,16 @@
 package scheduler
 
 import (
-	"time"
 	"github.com/chengcxy/gotools/configor"
 	"github.com/chengcxy/gotools/roboter"
+	"time"
 )
+
+var QueryResultTableExists = `
+select table_name
+from information_schema.tables
+where table_schema="%s" and table_name="%s"
+`
 
 type Scheduler struct {
 	config *configor.Config // 配置
