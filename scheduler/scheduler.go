@@ -211,10 +211,12 @@ func (sd *Scheduler)GenJobs(Jobchan chan *Job){
 
 func (sd *Scheduler)SplitSql(start,end int)string{
 	q := sd.taskInfo.StaticRule
+	q = strings.ReplaceAll(q, "%", "%%")
 	q = strings.Replace(q,"$start",strconv.Itoa(start),-1)
 	q = strings.Replace(q,"$end",strconv.Itoa(end),-1)
 	return q
 }
+
 
 
 
