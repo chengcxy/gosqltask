@@ -211,7 +211,6 @@ func (sd *Scheduler)GenJobs(Jobchan chan *Job){
 
 func (sd *Scheduler)SplitSql(start,end int)string{
 	q := sd.taskInfo.StaticRule
-	q = strings.ReplaceAll(q, "%", "%%")
 	q = strings.Replace(q,"$start",strconv.Itoa(start),-1)
 	q = strings.Replace(q,"$end",strconv.Itoa(end),-1)
 	return q
@@ -265,11 +264,14 @@ func(sd *Scheduler)SubmitTask(debug bool){
 		sd.Close(debug)
 	}(debug)
 	if debug {
+		var debugSql string
 		if strings.Contains(sd.taskInfo.StaticRule,"$start"){
-			log.Printf("debugsql is:\n%s",sd.SplitSql(0,10000))
+			debugSql = strings.ReplaceAll(sd.SplitSql(0,10000),"%%","%")
+
 		}else{
-			log.Printf("debugsql is:\n%s",sd.taskInfo.StaticRule)
+			debugSql = strings.ReplaceAll(sd.taskInfo.StaticRule,"%%","%")
 		}
+		log.Printf("debugsql is:\n%s",debugSql)
 		return 
 	}
 
