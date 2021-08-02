@@ -164,22 +164,23 @@ func (sd *Scheduler)RenderSql()string{
 //切分后续需使用算法切分 针对数据倾斜的做处理
 func (sd *Scheduler) GetStartEnds(MinId,MaxId int)([][]int){
 	start_ends := make([][]int,0)
-	if strings.ToLower(sd.taskPoolParams.Pk) == "id" || strings.ToLower(sd.taskPoolParams.Pk) == "entid"{
+	if len(strconv.Itoa(MaxId)) >= 16{
+		ls := make([]int,2)
+		ls[0] = MinId
+		ls[1] = 100012000000
+		start_ends = append(start_ends,ls)
+		ls2 := make([]int,2)
+		ls2[0] = 1000100000000000
+		ls2[1] = MaxId
+		start_ends= append(start_ends,ls2)
+		return start_ends
+	}else{
 		ls := make([]int,2)
 		ls[0] = MinId
 		ls[1] = MaxId 
 		start_ends = append(start_ends,ls)
 		return start_ends
 	}
-	ls := make([]int,2)
-	ls[0] = MinId
-	ls[1] = 100012000000 
-	start_ends = append(start_ends,ls)
-	ls2 := make([]int,2)
-	ls2[0] = 1000100000000000
-	ls2[1] = MaxId
-	start_ends= append(start_ends,ls2)
-	return start_ends
 }
 func (sd *Scheduler)GenJobs(Jobchan chan *Job){
 	db := strings.Split(sd.taskPoolParams.Table, ".")[0]
