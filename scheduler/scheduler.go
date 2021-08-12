@@ -141,7 +141,7 @@ func (sd *Scheduler)parseTask(){
 	}
 	sd.RenderSql()
 	//获取全局数据库连接
-	sd.globalDbConfig = configor.NewConfig(sd.config.ConfigPath,GlobalDBConfigJsonFile)
+	sd.globalDbConfig = configor.NewConfig(sd.config.ConfigPath,GlobalDBConfigJsonFile,sd.config.UsedEnv)
 }
 
 

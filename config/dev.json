@@ -1,9 +1,9 @@
 {
     "taskmeta": {
         "conn": {
-            "host": "localhost",
+            "host": "DEV_MYSQL_HOST",
             "user": "root",
-            "password": "123456",
+            "password": "DEV_MYSQL_PASSWORD",
             "db": "test",
             "port": 3306,
             "charset": "utf8",
