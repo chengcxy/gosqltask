@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
+	"github.com/chengcxy/gosqltask/scheduler"
+	"github.com/chengcxy/gotools/configor"
 	"log"
 	"time"
-	"github.com/chengcxy/gotools/configor"
-	"github.com/chengcxy/gosqltask/scheduler"
 )
 
 var ConfigPath string
@@ -29,7 +29,6 @@ func init() {
 func main(){
 	StartTime := time.Now()
 	config := configor.NewConfig(ConfigPath, Env,UsedEnv)
-	log.Println(config.Get("taskmeta.conn"))
 	sd := scheduler.NewScheduler(config,TaskId,StartTime)
 	sd.Run(Debug)
 }
