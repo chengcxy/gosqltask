@@ -274,6 +274,9 @@ gosqltask任务id:4,执行完毕
   -id string
     	任务id (default "1",task_def_sql_automation表.id)
 
+编译前,
+可以将go.mod 
+replace github.com/chengcxy/gotools => ../gotools 删除 
 编译 cd bin && sh build.sh
 
 例子:
