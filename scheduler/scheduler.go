@@ -210,7 +210,7 @@ func (sd *Scheduler)RenderSql()string{
 	return query
 }
 
-//切分后续需使用算法切分 针对数据倾斜的做处理
+//切分
 func (sd *Scheduler) GetStartEnds(MinId,MaxId int)([][]int){
 	start_ends := make([][]int,0)
 	if len(strconv.Itoa(MaxId)) >= 16{
@@ -569,6 +569,7 @@ func  (sd *Scheduler)ThreadPoolExport(ExcelFullName,uid string)error{
 	}
 	if err := xlsx.SaveAs(ExcelFullName); err != nil {
 		log.Println("export excel task failed filename is:\n",ExcelFullName)
+		return err
 	}
 	sd.taskClient.Execute(UpdateExcelDownloadTaskStatus,total,line-2,exportStatus,uid)
 	log.Println("export excel task success filename is:\n",ExcelFullName)
