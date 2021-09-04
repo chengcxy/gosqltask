@@ -88,7 +88,7 @@ type TaskInfo  struct {
 }
 
 这里使用mysql表来存储任务,后面对这个表可以写api,实现任务的创建/提交执行/导出数据
-表结构及案例见data/data.sql,这几个表创建在test数据库以后,dev.json里面taskmeta.conn需要修改为data.sql导入的表所在的test数据库信息。
+表结构及案例见data/data.sql,这几个表创建在test数据库以后,dev.json里面taskmeta.conn需要修改为data.sql导入的表所在的z_etl数据库信息。
 gosqltask虽然暂时只支持mysql2mysql的sql任务,这个表2个字段FromDbType和ToDbType 
 后面可以使用其他语言进行拓展,丰富更多的reader和writer
 ```
@@ -96,7 +96,7 @@ gosqltask虽然暂时只支持mysql2mysql的sql任务,这个表2个字段FromDbT
 - 2.3 demo数据
 
 ```
-demo的任务,依赖的test.orders/test.userinfo表,2.2步骤已经将data.sql导入test数据库。
+demo的任务,依赖的z_etl.orders/z_etl.userinfo表,2.2步骤已经将data.sql导入z_etl数据库。
 可以自己写脚本mock一些大批量的数据测试一下.
 userinfo我本地mock了1000万数据。
 ```
@@ -223,7 +223,7 @@ func (sd *Scheduler)getTimeValue(v string) string{
 }
 ```
 
-- 2.6 表到表的同步 taskid=4 test.userinfo 导入到 test.userinfo3(datas.sql会建好和userinfo一样的表结构)
+- 2.6 表到表的同步 taskid=4 z_etl.userinfo 导入到 z_etl.userinfo3(datas.sql会建好和userinfo一样的表结构)
 ```
 统计规则设置为 select * from $table where $pk>$start and $pk <= $end
 
@@ -256,22 +256,38 @@ gosqltask任务id:4,执行完毕
 
 - 2.9 程序支持的命令行参数
 ```
--c 配置文件目录 
--e 配置文件名称
--d debug debug=true时候 默认打印执行的sql(如果是任务池提交,默认打印$start=0 && $end=10000区间的sql,
-    便于查看sql语句是否正确
-  )
--id sql_tasks.任务id
+  -UsedEnv
+    	是否走环境变量 (default true)
+  -c string
+    	配置文件目录 (default "../config/")
+  -cmd string
+    	走计算任务还是导出任务 (default "execute")
+  -d	debug执行的sql
+  -debug
+    	debug=true时候 默认打印执行的sql(如果是任务池提交,默认打印$start=0 && $end=10000区间的sql,
+  -dir string
+    	excel数据存放的目录 默认 ../data (default "../data")
+  -e string
+    	运行的环境-json文件前缀 dev/test/prod/local (default "dev")
+  -fid string
+    	时间戳
+  -id string
+    	任务id (default "1",task_def_sql_automation表.id)
+
+编译 cd bin && sh build.sh
 
 例子:
 a.默认读取./config/dev.json 调试运行任务id=3
-go run gosqltask.go --debug=true -id 3
+gosqltask --debug=true -id 3
 
 b.默认读取./config/dev.json 运行任务id=3
-go run gosqltask.go --debug=false -id 3
+gosqltask --debug=false -id 3
 
 c.默认读取具体路径的test配置文件 运行任务id=3
-go run gosqltask.go -c 配置文件路径 -e test --debug=false -id 3
+gosqltask -c 配置文件路径 -e test --debug=false -id 3
+
+d.导出任务id=3对应的$to_db$to_table表的数据
+gosqltask -c 配置文件路径 -e test -id 3 -cmd export
 ```
 
 
@@ -279,8 +295,9 @@ go run gosqltask.go -c 配置文件路径 -e test --debug=false -id 3
 ## 三.运行日志
 
 ```
-➜  gosqltask git:(master) ✗ go run gosqltask.go -e test --debug=false -id 3
-2021/07/15 11:14:33 ConfigPath: ./config/ ,Env: test ,TaskId: 3 Debug:false
+编译后
+➜  gosqltask git:(master) ✗ gosqltask -c  config/ -e test --debug=false -id 3
+2021/07/15 11:14:33 ConfigPath: config/ ,Env: test ,TaskId: 3 Debug:false
 2021/07/15 11:14:33 QueryTaskSql is  select * from sql_tasks where id=? and online_status=0
 2021/07/15 11:14:33 ok! query taskmeta mysql client closed
 2021/07/15 11:14:33 taskInfo.Params is
@@ -323,8 +340,8 @@ gosqltask任务id:3,执行完毕
 
 ### 一定要慎重!一定要慎重！一定要慎重！
 ```
-任务表有一个字段is_truncate 代表是否先清空写入的表,is_truncate=0 代表先清空,=1代表不清空,所以我默认值设置为了1.
-当is_truncate=0时,$to_db.$to_table的值一定要慎重!一定要慎重！一定要慎重！
+任务表有一个字段is_truncate 代表是否先清空写入的表,is_truncate=1 代表先清空,=1代表不清空,所以我默认值设置为了0.
+当is_truncate=1时,$to_db.$to_table的值一定要慎重!一定要慎重！一定要慎重！
 ```
 ## 五.钉钉通知-报警 
 
