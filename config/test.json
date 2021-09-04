@@ -1,0 +1,24 @@
+{
+    "taskmeta": {
+        "conn": {
+            "host": "TEST_ZPE_MYSQL_HOST",
+            "user": "TEST_ZPE_MYSQL_USER",
+            "password": "TEST_ZPE_MYSQL_PASSWORD",
+            "db": "z_etl",
+            "port": 3306,
+            "charset": "utf8",
+            "MaxOpenConns":20,
+            "MaxIdleConns":30
+        },
+        "query_task": "select * from task_def_sql_automation where id=? and online_status=1"
+    },
+    "roboter": {
+        "token": "TEST_DINGDING_TOKEN",
+        "atMobiles": [
+            "18811788263"
+        ],
+        "isAtAll": false,
+        "roboter_type": "dingding",
+        "hook_keyword": "任务报警"
+    }
+}

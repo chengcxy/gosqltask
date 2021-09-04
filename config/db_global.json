@@ -2,28 +2,25 @@
     "from": {
         "mysql": {
             "local_dw_test": {
-                "charset": "utf8",
+                "host": "LOCAL_MYSQL_HOST",
+                "user": "LOCAL_MYSQL_USER",
+                "password": "LOCAL_MYSQL_PASSWORD",
                 "db": "test",
-                "host": "localhost",
-                "password": "admin2016",
                 "port": 3306,
-                "user": "root"
+                "charset": "utf8"
             }
-           
         }
     },
     "to": {
         "mysql": {
             "local_dw_test": {
-                "charset": "utf8",
+                "host": "LOCAL_MYSQL_HOST",
+                "user": "LOCAL_MYSQL_USER",
+                "password": "LOCAL_MYSQL_PASSWORD",
                 "db": "test",
-                "host": "localhost",
-                "password": "admin2016",
                 "port": 3306,
-                "user": "root"
+                "charset": "utf8"
             }
-         
         }
     }
 }
-

@@ -1,21 +1,21 @@
 {
     "taskmeta": {
         "conn": {
-            "host": "DEV_MYSQL_HOST",
-            "user": "root",
-            "password": "DEV_MYSQL_PASSWORD",
-            "db": "test",
+            "host": "LOCAL_MYSQL_HOST",
+            "user": "LOCAL_MYSQL_USER",
+            "password": "LOCAL_MYSQL_PASSWORD",
+            "db": "z_etl",
             "port": 3306,
             "charset": "utf8",
             "MaxOpenConns":1,
             "MaxIdleConns":1
         },
-        "query_task": "select * from sql_tasks where id=? and online_status=0"
+        "query_task": "select * from task_def_sql_automation where id=? and online_status=1"
     },
     "roboter": {
-        "token": "3***********************************0",
+        "token": "TEST_DINGDING_TOKEN",
         "atMobiles": [
-            "188*******3"
+            "188****63"
         ],
         "isAtAll": false,
         "roboter_type": "dingding",
